@@ -15,6 +15,17 @@ app.get('/tasks',(req,res)=>{
      res.status(200).json({success:true, data:tasks})
 })
 
+app.get('/tasks/:id',(req,res)=>{
+    const id= req.params.id;
+
+    const taskid = tasks.find((task)=>{
+    return task.id === Number(id)})
+
+    if(!taskid){
+        return res.status(404).json({success:false, message:'task doesnt exist'})
+    }
+    return res.json({success:true, data:{taskid}})
+})
 
 app.post('/tasks',(req,res)=>{
     console.log(tasks);
