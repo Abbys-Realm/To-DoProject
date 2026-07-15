@@ -17,4 +17,4 @@ const tasks=[
     completed:'not complete'}
 ]
 
-module.exports={tasks}
+module.exports=tasks;

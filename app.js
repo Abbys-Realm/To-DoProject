@@ -4,7 +4,7 @@ const tasks = require ('./data')
 const http = require('http');
 
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({extended: false}));
 
 
 app.get('/',(req,res)=>{
@@ -16,10 +16,28 @@ app.get('/tasks',(req,res)=>{
 })
 
 
-app.post('/tasks/add',(req,res)=>{
+app.post('/tasks',(req,res)=>{
+    console.log(tasks);
+    console.log(tasks.length);
+    let newtaskID;
+    if(tasks.length===0){
+        console.log("no tasks");
+        newtaskID=1;
+    } else {
+        console.log(tasks[tasks.length-1]);
+        newtaskID=tasks[tasks.length-1].id+1
+    }
      console.log(req.body);
-     console.log("im testing ts shi")
-      
+    const {taskname, category}= req.body;
+     const newtask={
+        id: newtaskID,
+        taskname,
+        category,
+        completed:false
+     }
+    tasks.push(newtask)
+
+    res.status(201).json({status:"sucess", data:{task:newtask}});
 })
 
 
