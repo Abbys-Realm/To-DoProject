@@ -27,7 +27,7 @@ app.get('/tasks/:id',(req,res)=>{
     return res.json({success:true, data:{taskid}})
 })
 
-app.post('/tasks',(req,res)=>{
+app.post('/tasks/add',(req,res)=>{
     console.log(tasks);
     console.log(tasks.length);
     let newtaskID;
@@ -51,6 +51,30 @@ app.post('/tasks',(req,res)=>{
     res.status(201).json({status:"sucess", data:{task:newtask}});
 })
 
+
+app.put('/tasks/:id',(req,res)=>{
+      const id=req.params.id;
+      const {taskname,category,completed}= req.body;
+
+
+      if(!taskname||!category||completed === undefined){
+        //return res.send("every field is required")
+        return res.status(400).json({success:false, message:"every field is required"})
+     }
+
+          const Task_update = tasks.find((task)=>{
+    return task.id === Number(id)})
+    
+    if(!Task_update){
+        return res.status(404).json({success:false, message:"task not found"})
+    }
+      
+        Task_update.taskname= taskname;
+        Task_update.category= category;
+        Task_update.completed= completed; 
+        res.status(200).json({success:true, data:{Task_update}})
+      
+})
 
 app.use((req,res)=>{
     res.status(404).send('resource not found')
