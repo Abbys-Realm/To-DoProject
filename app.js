@@ -4,6 +4,12 @@ const tasks = require ('./data')
 const http = require('http');
 
 app.use(express.json());
+
+app.use((req,res,next)=>{
+    console.log(req.body);
+    next();
+});
+
 app.use(express.urlencoded({extended: false}));
 
 
@@ -85,20 +91,31 @@ app.patch('/tasks/:id',(req,res)=>{
     if(!taskpartial){
         return res.status(404).json({success:false, message:"task not found"})
     }
-     if(taskname){
+     if(taskname !== undefined){
         taskpartial.taskname= taskname;
-        //return res.status(200).json({success:true, data:{taskpartial}})
-     }
-     if(category){
-        taskpartial.category= category;
-        //return res.status(200).json({success:true, data:{taskpartial}})
+    }
+     if(category !== undefined){
+        taskpartial.category= category; 
      }
      if(completed !== undefined){
-        taskpartial.completed= completed;
-        //return res.status(200).json({success:true, data:{taskpartial}})
+        taskpartial.completed= completed; 
      }
 res.status(200).json({success:true, data:{taskpartial}})
-     
+})
+
+app.delete('/tasks/:id',(req,res)=>{
+    const id = req.params.id;
+
+    const taskindex= tasks.findIndex(taskindex=> taskindex.id === Number(id))
+
+    if(taskindex<0){
+       return res.status(404).json({success:false, message:"task doesnt exist"})
+    }
+    const deletedTask = tasks[taskindex];
+    tasks.splice(taskindex,1)
+
+    res.status(200).json({success:true, data:deletedTask})
+
 })
 
 app.use((req,res)=>{
