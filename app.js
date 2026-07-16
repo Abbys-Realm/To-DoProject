@@ -76,6 +76,31 @@ app.put('/tasks/:id',(req,res)=>{
       
 })
 
+app.patch('/tasks/:id',(req,res)=>{
+    const id= Number(req.params.id);
+    const {taskname, category, completed}= req.body;
+
+    const taskpartial=  tasks.find(task=>task.id === id);
+     
+    if(!taskpartial){
+        return res.status(404).json({success:false, message:"task not found"})
+    }
+     if(taskname){
+        taskpartial.taskname= taskname;
+        //return res.status(200).json({success:true, data:{taskpartial}})
+     }
+     if(category){
+        taskpartial.category= category;
+        //return res.status(200).json({success:true, data:{taskpartial}})
+     }
+     if(completed !== undefined){
+        taskpartial.completed= completed;
+        //return res.status(200).json({success:true, data:{taskpartial}})
+     }
+res.status(200).json({success:true, data:{taskpartial}})
+     
+})
+
 app.use((req,res)=>{
     res.status(404).send('resource not found')
 })
