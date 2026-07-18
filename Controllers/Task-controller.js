@@ -1,7 +1,25 @@
 const tasks= require('../DATA/data');
 
 const getall= (req,res)=>{
-    res.status(200).json(tasks);
+    const{ category,completed}= req.query;
+    if(completed){
+    const parsebool= JSON.parse(completed);
+
+    //this will return true if both conditions are true
+    //if( parsebool !== undefined && category!== undefined){
+        //const filterTasks= tasks.filter((complete)=> 
+           // complete.completed=== parsebool && complete.category=== category )
+       // return res.status(200).json({success: true, data:filterTasks});
+  //  }   }
+    //this will return true if either conditions are true
+    if( parsebool !== undefined && category!== undefined){
+        const filterTasks= tasks.filter((complete)=> 
+            complete.completed=== parsebool || complete.category=== category )
+        return res.status(200).json({success: true, data:filterTasks});
+    }   }
+
+    res.status(200).json({success:true, data:tasks})
+    //console.log(req.query);
 }
 
 const getTasks= (req,res)=>{
@@ -14,6 +32,8 @@ const getTasks= (req,res)=>{
         return res.status(404).json({success:false, message:'task doesnt exist'})
     }
     return res.json({success:true, data:{taskid}})
+
+  
 }
 
 const addTask= (req,res)=>{
@@ -46,8 +66,15 @@ const updateTask=(req,res)=>{
 
 
       if(!taskname||!category||completed === undefined){
+        if(typeof taskname & category !=="string"){
+            return res.status(400).json({message:"taskname must be stirng"})
+        }
+        if(typeof completed !=="boolean"){
+            return res.status(400).json({message:"taskname must be stirng"})
+        }
         //return res.send("every field is required")
         return res.status(400).json({success:false, message:"every field is required"})
+        
      }
 
           const Task_update = tasks.find((task)=>{

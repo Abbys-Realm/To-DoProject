@@ -1,11 +1,10 @@
 const express= require ('express');
 const router= express.Router();
 
-
 const{
     getall, getTasks,addTask,
     updateTask, patchTask, deleteTask
-}= require('../Controllers/Task-controller')
+}= require('../Controllers/Task-controller');
 
 router.get('/',getall);
 router.get('/:id',getTasks);
