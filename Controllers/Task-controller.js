@@ -2,7 +2,7 @@ const { json } = require('express');
 const tasks= require('../DATA/data');
 
 const getall= (req,res)=>{
-    const{taskname,category,completed}= req.query;
+    const{taskname,category,completed,sort,order}= req.query;
     //if(completed){
     //const parsebool= JSON.parse(completed);
 
@@ -40,11 +40,33 @@ const getall= (req,res)=>{
             task.taskname=== taskname
         )
     }
+    if(sort === "taskname"){
+        filteredtasks.sort((task1,task2)=>{
+            if(order==="desc"){
+                return task2.taskname.localeCompare(task1.taskname)
+            }
+             //if(task1.taskname>task2.taskname){return 1;}
+             //if(task1.taskname<task2.taskname){return -1;}
+             return task1.taskname.localeCompare(task2.taskname);
+        })
+    }
+    if(sort === "category"){
+        filteredtasks.sort((task1,task2)=>{
+            if(order==="desc"){
+                return task2.category.localeCompare(task1.category)
+            }
+             //if(task1.taskname>task2.taskname){return 1;}
+             //if(task1.taskname<task2.taskname){return -1;}
+             return task1.category.localeCompare(task2.category);
+        })
+    }
       
     return res.status(200).json({
     success: true,
     data: filteredtasks
 });
+  
+   
     
     res.status(200).json({success:true, data:tasks})
     //console.log(req.query);

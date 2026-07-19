@@ -1,44 +1,44 @@
 const tasks=[
     {
     id:101,
-    taskname:'do laundary',
-    category:'hygiene',
+    taskname:'Do laundary',
+    category:'Hygiene',
     completed:true
     },
     {
         id:102,
-        taskname:'gym',
-        category:'fitness',
+        taskname:'Gym',
+        category:'Fitness',
         completed:false
     }, 
     {
     id:103,
-    taskname:'study',
-    category:'education',
+    taskname:'Study',
+    category:'Education',
     completed:false
     },
     {
         id:104,
-        taskname:"buy groceries",
-        category:"shopping",
+        taskname:"Buy groceries",
+        category:"Shopping",
         completed:false
     },
     {
         id: 105,
     taskname: "Clean bedroom",
-    category: "hygiene",
+    category: "Hygiene",
     completed: true
     },
     {
        id: 106,
     taskname: "Play football",
-    category: "fitness",
+    category: "Fitness",
     completed: false 
     },
     {
         id:107,
-        taskname:"go for morning run",
-        category:"fitness",
+        taskname:"Go for morning run",
+        category:"Fitness",
         completed:true
     }
 ]
