@@ -61,9 +61,14 @@ const getall= (req,res)=>{
              return task1.category.toLowerCase().localeCompare(task2.category.toLowerCase());
         })
     }
-    const startIndex= (page-1)*limit
-    const endIndex= page*limit
-    filteredtasks= filteredtasks.slice(startIndex, endIndex)
+    if(page&&limit){ 
+
+    const startIndex= (Number(page-1))*Number(limit)
+    const endIndex= Number(page)*Number(limit)
+    
+      filteredtasks= filteredtasks.slice(startIndex, endIndex)
+    }
+  
 
       
     return res.status(200).json({
