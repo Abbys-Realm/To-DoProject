@@ -1,9 +1,10 @@
+const { json } = require('express');
 const tasks= require('../DATA/data');
 
 const getall= (req,res)=>{
-    const{ category,completed}= req.query;
-    if(completed){
-    const parsebool= JSON.parse(completed);
+    const{taskname,category,completed}= req.query;
+    //if(completed){
+    //const parsebool= JSON.parse(completed);
 
     //this will return true if both conditions are true
     //if( parsebool !== undefined && category!== undefined){
@@ -12,15 +13,42 @@ const getall= (req,res)=>{
        // return res.status(200).json({success: true, data:filterTasks});
   //  }   }
     //this will return true if either conditions are true
-    if( parsebool !== undefined && category!== undefined){
-        const filterTasks= tasks.filter((complete)=> 
-            complete.completed=== parsebool || complete.category=== category )
-        return res.status(200).json({success: true, data:filterTasks});
-    }   }
+    //if( parsebool !== undefined && category!== undefined && taskname!== undefined){
+     //   const filterTasks= tasks.filter((complete)=> 
+       //     complete.completed=== parsebool&& complete.category=== category
+       //  && complete.taskname=== taskname)
+      //  return res.status(200).json({success: true, data:filterTasks});
+  //  }}
 
+    let filteredtasks= tasks;
+    if(category){
+        filteredtasks= filteredtasks.filter(task=>
+
+            task.category=== category
+        )
+    }
+    if(completed){
+        const parsecomplete= JSON.parse(completed);
+        filteredtasks= filteredtasks.filter(task=>
+
+            task.completed=== parsecomplete
+        )
+    }
+    if(taskname){
+        filteredtasks= filteredtasks.filter(task=>
+
+            task.taskname=== taskname
+        )
+    }
+      
+    return res.status(200).json({
+    success: true,
+    data: filteredtasks
+});
+    
     res.status(200).json({success:true, data:tasks})
     //console.log(req.query);
-}
+     }
 
 const getTasks= (req,res)=>{
     const id= req.params.id;
