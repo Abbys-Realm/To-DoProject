@@ -2,7 +2,8 @@ const { json } = require('express');
 const tasks= require('../DATA/data');
 
 const getall= (req,res)=>{
-    const{taskname,category,completed,sort,order}= req.query;
+    const{taskname,category,completed,sort,
+        order,page,limit}= req.query;
     //if(completed){
     //const parsebool= JSON.parse(completed);
 
@@ -43,33 +44,32 @@ const getall= (req,res)=>{
     if(sort === "taskname"){
         filteredtasks.sort((task1,task2)=>{
             if(order==="desc"){
-                return task2.taskname.localeCompare(task1.taskname)
+                return task2.taskname.toLowerCase().localeCompare(task1.taskname.toLowerCase())
             }
              //if(task1.taskname>task2.taskname){return 1;}
              //if(task1.taskname<task2.taskname){return -1;}
-             return task1.taskname.localeCompare(task2.taskname);
+             return task1.taskname.toLowerCase().localeCompare(task2.taskname.toLowerCase());
         })
     }
     if(sort === "category"){
         filteredtasks.sort((task1,task2)=>{
             if(order==="desc"){
-                return task2.category.localeCompare(task1.category)
+                return task2.category.toLowerCase().localeCompare(task1.category.toLowerCase())
             }
              //if(task1.taskname>task2.taskname){return 1;}
              //if(task1.taskname<task2.taskname){return -1;}
-             return task1.category.localeCompare(task2.category);
+             return task1.category.toLowerCase().localeCompare(task2.category.toLowerCase());
         })
     }
+    const startIndex= (page-1)*limit
+    const endIndex= page*limit
+    filteredtasks= filteredtasks.slice(startIndex, endIndex)
+
       
     return res.status(200).json({
     success: true,
     data: filteredtasks
 });
-  
-   
-    
-    res.status(200).json({success:true, data:tasks})
-    //console.log(req.query);
      }
 
 const getTasks= (req,res)=>{

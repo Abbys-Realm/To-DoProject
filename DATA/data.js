@@ -2,7 +2,7 @@ const tasks=[
     {
     id:101,
     taskname:'Do laundary',
-    category:'Hygiene',
+    category:'Hgtygiene',
     completed:true
     },
     {
