@@ -56,16 +56,23 @@ const getall= (req,res)=>{
             if(order==="desc"){
                 return task2.category.toLowerCase().localeCompare(task1.category.toLowerCase())
             }
-             //if(task1.taskname>task2.taskname){return 1;}
-             //if(task1.taskname<task2.taskname){return -1;}
              return task1.category.toLowerCase().localeCompare(task2.category.toLowerCase());
         })
     }
+        if(sort === "id"){
+        filteredtasks.sort((task1,task2)=>{
+            if(order==="desc"){
+                return task2.id - task1.id 
+            }
+             return task1.id - task2.id;
+        })
+    }
+
     if(page&&limit){ 
 
     const startIndex= (Number(page-1))*Number(limit)
     const endIndex= Number(page)*Number(limit)
-    
+
       filteredtasks= filteredtasks.slice(startIndex, endIndex)
     }
   
