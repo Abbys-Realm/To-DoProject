@@ -69,9 +69,14 @@ const getall= (req,res)=>{
     }
 
     if(page&&limit){ 
-
-    const startIndex= (Number(page-1))*Number(limit)
-    const endIndex= Number(page)*Number(limit)
+    const pageNum= Number(page);
+    const limitNum= Number(limit);
+    const startIndex= (page-1)*limit
+    const endIndex= page*limit
+  
+    if(isNaN(pageNum) || isNaN(limitNum)){
+         return res.send(400).json({sucess:false, message:"invalid page or limit specification"})
+    }
 
       filteredtasks= filteredtasks.slice(startIndex, endIndex)
     }
