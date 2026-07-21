@@ -5,15 +5,18 @@ const authRoutes= require('./Routes/authRoutes')
 const app= express()
 const http = require('http');
 
-app.use('/auth', authRoutes)
 app.use(express.json());
+
+app.use('/auth', authRoutes)
+app.use('/tasks', taskroute)
+
+
 app.use(express.urlencoded({extended: false}));
 app.get('/',(req,res)=>{
     console.log('user clicked the server')
     res.status(200).send('home page')
 })
 
-app.use('/tasks', taskroute)
 
 app.use((req,res)=>{
     res.status(404).send('resource not found')
