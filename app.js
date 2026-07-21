@@ -1,9 +1,11 @@
 const express= require('express');
 const taskroute= require('./Routes/tasks')
+const authRoutes= require('./Routes/authRoutes')
 
 const app= express()
 const http = require('http');
 
+app.use('/auth', authRoutes)
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.get('/',(req,res)=>{
