@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express= require('express');
+require("./Config/db")
 const taskroute= require('./Routes/tasks')
 const authRoutes= require('./Routes/authRoutes')
 

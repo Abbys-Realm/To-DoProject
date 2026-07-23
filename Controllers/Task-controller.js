@@ -1,130 +1,79 @@
 const { json } = require('express');
 const tasks= require('../DATA/data');
+const pool= require("../Config/db")
 
-const getall= (req,res)=>{
-    const{taskname,category,completed,sort,
-        order,page,limit}= req.query;
-    //if(completed){
-    //const parsebool= JSON.parse(completed);
+const getall = async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM tasks");
 
-    //this will return true if both conditions are true
-    //if( parsebool !== undefined && category!== undefined){
-        //const filterTasks= tasks.filter((complete)=> 
-           // complete.completed=== parsebool && complete.category=== category )
-       // return res.status(200).json({success: true, data:filterTasks});
-  //  }   }
-    //this will return true if either conditions are true
-    //if( parsebool !== undefined && category!== undefined && taskname!== undefined){
-     //   const filterTasks= tasks.filter((complete)=> 
-       //     complete.completed=== parsebool&& complete.category=== category
-       //  && complete.taskname=== taskname)
-      //  return res.status(200).json({success: true, data:filterTasks});
-  //  }}
-
-    let filteredtasks= tasks;
-    if(category){
-        filteredtasks= filteredtasks.filter(task=>
-
-            task.category=== category
-        )
+        res.status(200).json({
+            success: true,
+            data: result.rows,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
     }
-    if(completed){
-        const parsecomplete= JSON.parse(completed);
-        filteredtasks= filteredtasks.filter(task=>
+};
 
-            task.completed=== parsecomplete
-        )
-    }
-    if(taskname){
-        filteredtasks= filteredtasks.filter(task=>
+const getTasks=async (req, res) => {
 
-            task.taskname=== taskname
-        )
-    }
-    if(sort === "taskname"){
-        filteredtasks.sort((task1,task2)=>{
-            if(order==="desc"){
-                return task2.taskname.toLowerCase().localeCompare(task1.taskname.toLowerCase())
-            }
-             //if(task1.taskname>task2.taskname){return 1;}
-             //if(task1.taskname<task2.taskname){return -1;}
-             return task1.taskname.toLowerCase().localeCompare(task2.taskname.toLowerCase());
-        })
-    }
-    if(sort === "category"){
-        filteredtasks.sort((task1,task2)=>{
-            if(order==="desc"){
-                return task2.category.toLowerCase().localeCompare(task1.category.toLowerCase())
-            }
-             return task1.category.toLowerCase().localeCompare(task2.category.toLowerCase());
-        })
-    }
-        if(sort === "id"){
-        filteredtasks.sort((task1,task2)=>{
-            if(order==="desc"){
-                return task2.id - task1.id 
-            }
-             return task1.id - task2.id;
+    const {id}= req.params;
+    try {
+        const result = await pool.query("SELECT * FROM tasks WHERE id =$1",[id]);
+
+        res.status(200).json({
+            success: true,
+            data: result.rows,
+        });
+
+    if(result.rows.length===0){
+        return res.status(404).json({
+            success:false,
+            message:"task not found"
         })
     }
 
-    if(page&&limit){ 
-    const pageNum= Number(page);
-    const limitNum= Number(limit);
-    const startIndex= (page-1)*limit
-    const endIndex= page*limit
-  
-    if(isNaN(pageNum) || isNaN(limitNum)){
-         return res.send(400).json({sucess:false, message:"invalid page or limit specification"})
-    }
+  res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 
-      filteredtasks= filteredtasks.slice(startIndex, endIndex)
-    }
-  
-
-      
-    return res.status(200).json({
-    success: true,
-    data: filteredtasks
-});
+const addTask= async (req,res)=>{
+     const {taskname, category,completed}= req.body;
+     if(!taskname||!category||completed==undefined){
+        return res.status(400).json({
+            success:false,
+            message:"each field is required"
+        })
      }
-
-const getTasks= (req,res)=>{
-    const id= req.params.id;
-
-    const taskid = tasks.find((task)=>{
-    return task.id === Number(id)})
-
-    if(!taskid){
-        return res.status(404).json({success:false, message:'task doesnt exist'})
-    }
-    return res.json({success:true, data:{taskid}})
-
-  
+     try{
+        const result= await pool.query(`INSERT INTO tasks
+            (taskname,category,completed)
+            values($1,$2,$3) RETURNING *`,
+        [taskname,category,completed]
+    )
+     
+    res.status(201).json({success:"true", data:result.rows[0]});
 }
-
-const addTask= (req,res)=>{
-    console.log(tasks);
-    console.log(tasks.length);
-    let newtaskID;
-    if(tasks.length===0){
-        console.log("no tasks");
-        newtaskID=1;
-    } else {
-        console.log(tasks[tasks.length-1]);
-        newtaskID=tasks[tasks.length-1].id+1
-    }
-     console.log(req.body);
-    const {taskname, category}= req.body;
-     const newtask={
-        id: newtaskID,
-        taskname,
-        category,
-        completed:false
-     }
-    tasks.push(newtask)
-
-    res.status(201).json({status:"sucess", data:{task:newtask}});
+   catch(error){
+    console.log(error);
+    res.status(500).json({
+        success:false,
+        message:"server error"
+    })
+   }
 }
 
 const updateTask=(req,res)=>{
