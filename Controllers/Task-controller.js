@@ -76,35 +76,55 @@ const addTask= async (req,res)=>{
    }
 }
 
-const updateTask=(req,res)=>{
+const updateTask= async (req,res)=>{
     const id=req.params.id;
       const {taskname,category,completed}= req.body;
-
-
-      if(!taskname||!category||completed === undefined){
-        if(typeof taskname & category !=="string"){
+      if(!taskname||!category||completed === undefined)
+      {
+        return res.status(400).json({
+            success:false,
+            message:"every field is required"
+        })
+      }
+        
+        if(typeof taskname   !=="string"){
             return res.status(400).json({message:"taskname must be stirng"})
+        }
+        if(typeof category!=="string"){
+            return res.status(400).json({message:"category must be stirng"})
         }
         if(typeof completed !=="boolean"){
             return res.status(400).json({message:"taskname must be stirng"})
         }
-        //return res.send("every field is required")
-        return res.status(400).json({success:false, message:"every field is required"})
-        
-     }
-
-          const Task_update = tasks.find((task)=>{
-    return task.id === Number(id)})
+         
     
-    if(!Task_update){
-        return res.status(404).json({success:false, message:"task not found"})
-    }
-      
-        Task_update.taskname= taskname;
-        Task_update.category= category;
-        Task_update.completed= completed; 
-        res.status(200).json({success:true, data:{Task_update}})
+     try 
+     {
+        const result= await pool.query(`UPDATE tasks SET
+            taskname=$1,
+            category=$2,
+            completed= $3 WHERE id= $4 RETURNING *`,
+        [taskname,category,completed,id]) 
+        if(result.rows.length===0){
+            return res.status(404).json({
+                success:false,
+                message:`no task with the id`})
+        }
+        res.status(200).json({
+            success:true,
+            data:result.rows[0]
+        })
+        }catch(error){
+            console.log(error);
+            res.status(500).json({
+        success:false,
+        message:"server error"
+    })
+        }
+
 }
+    
+
 
 const patchTask=(req,res)=>{
     const id= Number(req.params.id);
