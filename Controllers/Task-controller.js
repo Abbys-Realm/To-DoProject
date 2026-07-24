@@ -52,7 +52,7 @@ const getTasks=async (req, res) => {
 
 const addTask= async (req,res)=>{
      const {taskname, category,completed}= req.body;
-     if(!taskname||!category||completed==undefined){
+     if(!taskname||!category||completed===undefined){
         return res.status(400).json({
             success:false,
             message:"each field is required"
@@ -126,40 +126,114 @@ const updateTask= async (req,res)=>{
     
 
 
-const patchTask=(req,res)=>{
+const patchTask= async (req,res)=>{
     const id= Number(req.params.id);
     const {taskname, category, completed}= req.body;
-
-    const taskpartial=  tasks.find(task=>task.id === id);
      
-    if(!taskpartial){
-        return res.status(404).json({success:false, message:"task not found"})
+   try{
+
+    if(taskname===undefined&& category===undefined && completed===undefined){
+        return res.status(400).json({
+            success:false,
+            message:"no field provided to update"
+        })
     }
-     if(taskname !== undefined){
-        taskpartial.taskname= taskname;
-    }
-     if(category !== undefined){
-        taskpartial.category= category; 
+     if(taskname !==undefined && typeof taskname!=="string" ) {
+         return res.status(400).json({message:"taskname must be stirng"})
+             }
+     if(category  !==undefined && typeof category!=="string"){
+            return res.status(400).json({message:"category must be stirng"})
      }
-     if(completed !== undefined){
-        taskpartial.completed= completed; 
-     }
-res.status(200).json({success:true, data:{taskpartial}})
-}
+     if(completed  !==undefined && typeof completed !=="boolean" ){
+         return res.status(400).json({message:"complete must be stirng"})
+        }
+         
+         const Fields=[];
+         const Values=[];
+          if (taskname !== undefined) {
+            fields.push(`taskname = $${values.length + 1}`);
+            values.push(taskname);
+        }
 
-const deleteTask=(req,res)=>{
-    const id = req.params.id;
+        if (category !== undefined) {
+            fields.push(`category = $${values.length + 1}`);
+            values.push(category);
+        }
 
-    const taskindex= tasks.findIndex(taskindex=> taskindex.id === Number(id))
+        if (completed !== undefined) {
+            fields.push(`completed = $${values.length + 1}`);
+            values.push(completed);
+        }
 
-    if(taskindex<0){
-       return res.status(404).json({success:false, message:"task doesnt exist"})
+        values.push(id);
+
+        const query = `
+            UPDATE tasks
+            SET ${fields.join(", ")}
+            WHERE id = $${values.length}
+            RETURNING *
+        `;
+
+
+        const result = await pool.query(query, values);
+
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
+        }
+
+
+        res.status(200).json({
+            success: true,
+            message: "Task updated successfully",
+            task: result.rows[0]
+        });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
-    const deletedTask = tasks[taskindex];
-    tasks.splice(taskindex,1)
+};
 
-    res.status(200).json({success:true, data:deletedTask})
 
-}
+const deleteTask = async (req, res) => {
+    const id = Number(req.params.id);
 
+    try {
+        const result = await pool.query(
+            `DELETE FROM tasks
+             WHERE id = $1
+             RETURNING *`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Task doesn't exist"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Task deleted successfully",
+            data: result.rows[0]
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+};
 module.exports={getall,getTasks, addTask, updateTask, patchTask, deleteTask};
