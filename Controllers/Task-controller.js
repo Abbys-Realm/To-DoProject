@@ -123,21 +123,20 @@ const updateTask= async (req,res)=>{
         }
 
 }
-    
-
 
 const patchTask= async (req,res)=>{
     const id= Number(req.params.id);
     const {taskname, category, completed}= req.body;
      
    try{
-
+    //to check if any field is provided 
     if(taskname===undefined&& category===undefined && completed===undefined){
         return res.status(400).json({
             success:false,
             message:"no field provided to update"
         })
     }
+    //if a field is provided , it'll check its data type
      if(taskname !==undefined && typeof taskname!=="string" ) {
          return res.status(400).json({message:"taskname must be stirng"})
              }
@@ -148,8 +147,9 @@ const patchTask= async (req,res)=>{
          return res.status(400).json({message:"complete must be stirng"})
         }
          
-         const Fields=[];
-         const Values=[];
+         const fields=[]; //store the sql part of the code
+         const values=[];//store the actual data
+
           if (taskname !== undefined) {
             fields.push(`taskname = $${values.length + 1}`);
             values.push(taskname);
@@ -186,7 +186,7 @@ const patchTask= async (req,res)=>{
         }
 
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Task updated successfully",
             task: result.rows[0]
@@ -195,7 +195,7 @@ const patchTask= async (req,res)=>{
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Server error"
         });
