@@ -1,75 +1,77 @@
 const { json } = require('express')
-const tasks= require('../DATA/data');
 const pool= require("../Config/db")
 
 const getall = async (req, res) => {
-    console.log(req.query);
-    console.log(typeof req.query.category);
+     const user_id=req.user.id;
         try {
-      const {taskname,category,completed}= req.query;
+      const {taskname,category,completed,sort,order}= req.query;
+      let sortQuery = "";
+      let conditions=["user_id=$1"];
+      let values=[user_id];
 
-      let conditions=[];
-      let values=[];
-
-        if (completed !== undefined && completed !== "true" &&completed !== "false") {
+        if (completed !== undefined ) {
+            if(completed !== "true" &&completed !== "false") {
             return res.status(400).json({
                 success: false,
-                message: "completed must be true or false"
-            }); }
-    if(category !== undefined && !/^[A-Za-z]+$/.test(category)){
+                message: "completed must be true or false"}); }
+
+            conditions.push(`completed=$${values.length+1}`);
+            values.push(JSON.parse(completed))
+        }
+    if(category !== undefined) {
+        if( !/^[A-Za-z ]+$/.test(category)){
         return res.status(400).json({
         success:false,
         message:"Category must be string"
       })
    }
-    let parseCompleted;
-   if (completed !== undefined) {
-    parseCompleted = JSON.parse(completed);
-   }
-    if(category && parseCompleted !== undefined){
-        const resultFiltered=await pool.query(`SELECT * FROM tasks 
-            WHERE category=$1 AND
-            completed=$2`,[category,parseCompleted])
-        return res.status(200).json({
-            success:true,
-            data:resultFiltered.rows
-        })}
-    if(category){
-        const filterCategory= await pool.query(`SELECT * FROM tasks
-            WHERE category=$1 `,[category])
+    conditions.push(`category=$${values.length+1}`)
+    values.push(category);
+    }
+ 
+    if(taskname !== undefined){
+        if( !/^[A-Za-z ]+$/.test(taskname)){
+         return res.status(400).json({
+          success:false,
+          message:"taskname must be a string"});}
+         
+        conditions.push(`taskname ILIKE $${values.length + 1}`);
+            values.push(`%${taskname}%`);
+        }
+    if(sort){
+    const allowedSort = ["taskname", "category", "completed"];
 
-        return res.status(200).json({
-            success:true,
-            data:filterCategory.rows
-        })
-     }
-    if(parseCompleted !== undefined){
-        const filterComplete= await pool.query(`SELECT * FROM tasks
-            WHERE completed=$1 `,[parseCompleted])
-     
-        return res.status(200).json({
-            success:true,
-            data:filterComplete.rows
-        })
-    }
-    const result = await pool.query("SELECT * FROM tasks WHERE user_id=$1",[user_id]);
-     res.status(200).json({
-            success: true,
-            data: result.rows,
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Server error",
+    if(!allowedSort.includes(sort)){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid sort field"
         });
     }
+    const sortOrder = order === "desc" ? "DESC" : "ASC";
+    sortQuery = `ORDER BY ${sort} ${sortOrder}`;
 }
 
-const getTasks=async (req, res) => {
+    const query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")}`;
 
-    const {id}= req.params;
+         const result = await pool.query(query, values);
+        res.status(200).json({
+            success:true,
+            data:result.rows
+        });
+    } catch(error){
+
+        console.log(error);
+        res.status(500).json({
+            success:false,
+            message:"Server error"
+        });
+    }
+};
+
+const getTasks=async (req, res) => {
     try {
+        const {id}= req.params;
+        const user_id=req.user.id;
         const result = await pool.query("SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
 
         res.status(200).json({
@@ -98,14 +100,16 @@ const getTasks=async (req, res) => {
 };
 
 const addTask= async (req,res)=>{
-     const {taskname, category,completed}= req.body;
-     if(!taskname||!category||completed===undefined){
+   
+     try{
+        const user_id= req.user.id;
+        const {taskname, category,completed}= req.body;
+        if(!taskname||!category||completed===undefined){
         return res.status(400).json({
             success:false,
             message:"each field is required"
         })
      }
-     try{
         const result= await pool.query(`INSERT INTO tasks
             (taskname,category,completed,user_id)
             values($1,$2,$3,$4) RETURNING *`,
@@ -125,6 +129,7 @@ const addTask= async (req,res)=>{
 
 const updateTask= async (req,res)=>{
     const id=req.params.id;
+    const user_id= req.user.id;
       const {taskname,category,completed}= req.body;
       if(!taskname||!category||completed === undefined)
       {
@@ -170,8 +175,8 @@ const updateTask= async (req,res)=>{
     })
         }
 
-}
 
+}
 const patchTask= async (req,res)=>{
     const id= Number(req.params.id);
     const userID= req.user.id;
@@ -224,7 +229,7 @@ const patchTask= async (req,res)=>{
             UPDATE tasks
             SET ${fields.join(", ")}
             WHERE id = $${values.length} 
-           AND user_id=$${UIDplace}
+            AND user_id=$${UIDplace}
             RETURNING *
         `;
 
@@ -259,7 +264,7 @@ const patchTask= async (req,res)=>{
 
 const deleteTask = async (req, res) => {
     const id = Number(req.params.id);
-
+    const userID= req.user.id;
     try {
         const result = await pool.query(
             `DELETE FROM tasks

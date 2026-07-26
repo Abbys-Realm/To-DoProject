@@ -8,10 +8,10 @@ const{
 }= require('../Controllers/Task-controller');
 
 router.get('/',authMiddleware,getall);
-router.get('/:id',getTasks);
-router.post('/add',addTask);
-router.put('/:id',updateTask);
-router.patch('/:id',patchTask);
-router.delete('/:id',deleteTask);
+router.get('/:id',authMiddleware,getTasks);
+router.post('/add',authMiddleware,addTask);
+router.put('/:id',authMiddleware,updateTask);
+router.patch('/:id',authMiddleware,patchTask);
+router.delete('/:id',authMiddleware,deleteTask);
 
 module.exports= router;
