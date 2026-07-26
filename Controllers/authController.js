@@ -38,8 +38,12 @@ const login= async (req,res)=>{
          expiresIn:"7d"
       }
    )
+           console.log(req.user);
    res.status(200)
-   .json({success:true, message:"login successful"})
+   .json({success:true, message:"login successful",
+         JWTtoken
+   })
+   
 } 
    catch(error){
     console.log(error);

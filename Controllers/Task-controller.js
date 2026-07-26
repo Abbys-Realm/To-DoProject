@@ -1,12 +1,59 @@
-const { json } = require('express');
+const { json } = require('express')
 const tasks= require('../DATA/data');
 const pool= require("../Config/db")
 
 const getall = async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM tasks");
+    console.log(req.query);
+    console.log(typeof req.query.category);
+        try {
+      const {taskname,category,completed}= req.query;
 
-        res.status(200).json({
+      let conditions=[];
+      let values=[];
+
+        if (completed !== undefined && completed !== "true" &&completed !== "false") {
+            return res.status(400).json({
+                success: false,
+                message: "completed must be true or false"
+            }); }
+    if(category !== undefined && !/^[A-Za-z]+$/.test(category)){
+        return res.status(400).json({
+        success:false,
+        message:"Category must be string"
+      })
+   }
+    let parseCompleted;
+   if (completed !== undefined) {
+    parseCompleted = JSON.parse(completed);
+   }
+    if(category && parseCompleted !== undefined){
+        const resultFiltered=await pool.query(`SELECT * FROM tasks 
+            WHERE category=$1 AND
+            completed=$2`,[category,parseCompleted])
+        return res.status(200).json({
+            success:true,
+            data:resultFiltered.rows
+        })}
+    if(category){
+        const filterCategory= await pool.query(`SELECT * FROM tasks
+            WHERE category=$1 `,[category])
+
+        return res.status(200).json({
+            success:true,
+            data:filterCategory.rows
+        })
+     }
+    if(parseCompleted !== undefined){
+        const filterComplete= await pool.query(`SELECT * FROM tasks
+            WHERE completed=$1 `,[parseCompleted])
+     
+        return res.status(200).json({
+            success:true,
+            data:filterComplete.rows
+        })
+    }
+    const result = await pool.query("SELECT * FROM tasks WHERE user_id=$1",[user_id]);
+     res.status(200).json({
             success: true,
             data: result.rows,
         });
@@ -17,13 +64,13 @@ const getall = async (req, res) => {
             message: "Server error",
         });
     }
-};
+}
 
 const getTasks=async (req, res) => {
 
     const {id}= req.params;
     try {
-        const result = await pool.query("SELECT * FROM tasks WHERE id =$1",[id]);
+        const result = await pool.query("SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
 
         res.status(200).json({
             success: true,
@@ -60,9 +107,9 @@ const addTask= async (req,res)=>{
      }
      try{
         const result= await pool.query(`INSERT INTO tasks
-            (taskname,category,completed)
-            values($1,$2,$3) RETURNING *`,
-        [taskname,category,completed]
+            (taskname,category,completed,user_id)
+            values($1,$2,$3,$4) RETURNING *`,
+        [taskname,category,completed,user_id]
     )
      
     res.status(201).json({success:"true", data:result.rows[0]});
@@ -103,8 +150,9 @@ const updateTask= async (req,res)=>{
         const result= await pool.query(`UPDATE tasks SET
             taskname=$1,
             category=$2,
-            completed= $3 WHERE id= $4 RETURNING *`,
-        [taskname,category,completed,id]) 
+            completed= $3 WHERE id= $4 
+            AND user_id= $5 RETURNING *`,
+        [taskname,category,completed,id,user_id]) 
         if(result.rows.length===0){
             return res.status(404).json({
                 success:false,
@@ -126,6 +174,7 @@ const updateTask= async (req,res)=>{
 
 const patchTask= async (req,res)=>{
     const id= Number(req.params.id);
+    const userID= req.user.id;
     const {taskname, category, completed}= req.body;
      
    try{
@@ -166,11 +215,16 @@ const patchTask= async (req,res)=>{
         }
 
         values.push(id);
+        const IDplace= values.length;
+
+        values.push(userID);
+        const UIDplace=values.length
 
         const query = `
             UPDATE tasks
             SET ${fields.join(", ")}
-            WHERE id = $${values.length}
+            WHERE id = $${values.length} 
+           AND user_id=$${UIDplace}
             RETURNING *
         `;
 
@@ -210,8 +264,9 @@ const deleteTask = async (req, res) => {
         const result = await pool.query(
             `DELETE FROM tasks
              WHERE id = $1
+             AND user_id=$2
              RETURNING *`,
-            [id]
+            [id,user_id]
         );
 
         if (result.rows.length === 0) {
