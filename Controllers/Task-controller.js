@@ -51,7 +51,7 @@ const getall = async (req, res) => {
     sortQuery = `ORDER BY ${sort} ${sortOrder}`;
 }
 
-    const query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")}`;
+    const query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
 
          const result = await pool.query(query, values);
         res.status(200).json({
@@ -228,7 +228,7 @@ const patchTask= async (req,res)=>{
         const query = `
             UPDATE tasks
             SET ${fields.join(", ")}
-            WHERE id = $${values.length} 
+            WHERE id = $${IDplace} 
             AND user_id=$${UIDplace}
             RETURNING *
         `;
