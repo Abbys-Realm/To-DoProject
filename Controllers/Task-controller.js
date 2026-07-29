@@ -5,6 +5,8 @@ const getall = async (req, res) => {
      const user_id=req.user.id;
         try {
       const {taskname,category,completed,sort,order}= req.query;
+      const page= parseInt(req.query.page);
+      const limit= parseInt(req.query.limit);
       let sortQuery = "";
       let conditions=["user_id=$1"];
       let values=[user_id];
@@ -50,12 +52,49 @@ const getall = async (req, res) => {
     const sortOrder = order === "desc" ? "DESC" : "ASC";
     sortQuery = `ORDER BY ${sort} ${sortOrder}`;
 }
-
-    const query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
-
+   const offset= (page-1)*limit;
+   if((page !==undefined && page<1)||
+     (limit!== undefined && limit<1)){
+    return res.status(400).json(
+        {
+            success:false,
+            message:"Page and limit hsould be greater than 0"
+        }
+    )
+   }
+    let countValues=[...values]
+    
+    let query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
+    if(page&&limit){    
+    query += ` LIMIT $${values.length+1} OFFSET $${values.length+2}`
+         values.push(limit);
+         values.push(offset);}
          const result = await pool.query(query, values);
-        res.status(200).json({
+        
+    if (result.rows.length === 0) {
+        return res.status(404).json({
+        success: false,
+        message: "Task not found"
+    });
+}
+    const countQuery=`SELECT COUNT(*) AS total 
+                      FROM tasks WHERE ${conditions.join(" AND ")}`;
+    const countResult = await pool.query(countQuery, countValues);
+
+    const totaltasks= Number(countResult.rows[0].total);
+    const totalPages= Math.ceil(totaltasks/limit);
+    const nextPage= page< totalPages;
+    const prevPage= page>1;
+    
+    res.status(200).json({
             success:true,
+            page,
+            limit,
+            totaltasks,
+            totalPages,
+            nextPage,
+            prevPage,
+            count: result.rows.length,
             data:result.rows
         });
     } catch(error){
