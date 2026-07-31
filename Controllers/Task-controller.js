@@ -2,8 +2,8 @@ const { json } = require('express')
 const pool= require("../Config/db")
 
 const getall = async (req, res) => {
-     const user_id=req.user.id;
         try {
+      const user_id=req.user.id;
       const {taskname,category,completed,sort,order}= req.query;
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit) : 10;
@@ -63,8 +63,7 @@ if(isNaN(page) || page < 1 ||
 }
 
     let query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
-    if(page&&limit){ 
- 
+    { 
     query += ` LIMIT $${values.length+1} OFFSET $${values.length+2}`
          values.push(limit);
          values.push(offset);}
@@ -110,24 +109,20 @@ const getTasks=async (req, res) => {
     try {
         const {id}= req.params;
         const user_id=req.user.id;
-        const result = await pool.query("SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
-
-        res.status(200).json({
-            success: true,
-            data: result.rows,
-        });
-
+        const result = await pool.query(
+        "SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
+        
     if(result.rows.length===0){
         return res.status(404).json({
             success:false,
             message:"task not found"
         })
     }
+        res.status(200).json({
+            success: true,
+            data: result.rows[0]
+        });
 
-  res.status(200).json({
-      success: true,
-      data: result.rows[0],
-    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -178,13 +173,13 @@ const updateTask= async (req,res)=>{
       }
         
         if(typeof taskname   !=="string"){
-            return res.status(400).json({message:"taskname must be stirng"})
+            return res.status(400).json({message:"taskname must be string"})
         }
         if(typeof category!=="string"){
-            return res.status(400).json({message:"category must be stirng"})
+            return res.status(400).json({message:"category must be string"})
         }
         if(typeof completed !=="boolean"){
-            return res.status(400).json({message:"taskname must be stirng"})
+            return res.status(400).json({message:"taskname must be string"})
         }
          
     
@@ -301,9 +296,10 @@ const patchTask= async (req,res)=>{
 
 
 const deleteTask = async (req, res) => {
-    const id = Number(req.params.id);
-    const userID= req.user.id;
+
     try {
+    const id = Number(req.params.id);
+    const user_id= req.user.id;
         const result = await pool.query(
             `DELETE FROM tasks
              WHERE id = $1
