@@ -5,8 +5,8 @@ const getall = async (req, res) => {
      const user_id=req.user.id;
         try {
       const {taskname,category,completed,sort,order}= req.query;
-      const page= parseInt(req.query.page);
-      const limit= parseInt(req.query.limit);
+      const page = req.query.page ? parseInt(req.query.page) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 10;
       let sortQuery = "";
       let conditions=["user_id=$1"];
       let values=[user_id];
@@ -53,19 +53,18 @@ const getall = async (req, res) => {
     sortQuery = `ORDER BY ${sort} ${sortOrder}`;
 }
    const offset= (page-1)*limit;
-   if((page !==undefined && page<1)||
-     (limit!== undefined && limit<1)){
-    return res.status(400).json(
-        {
-            success:false,
-            message:"Page and limit hsould be greater than 0"
-        }
-    )
-   }
     let countValues=[...values]
-    
+if(isNaN(page) || page < 1 ||
+   isNaN(limit) || limit < 1){
+    return res.status(400).json({
+        success:false,
+        message:"Page and limit should be greater than 0"
+    });
+}
+
     let query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
-    if(page&&limit){    
+    if(page&&limit){ 
+ 
     query += ` LIMIT $${values.length+1} OFFSET $${values.length+2}`
          values.push(limit);
          values.push(offset);}
