@@ -1,16 +1,24 @@
 const { json } = require('express')
 const pool= require("../Config/db")
 
+//Getting all tasks
 const getall = async (req, res) => {
         try {
+    //To uniquely identify users tasks to each one 
       const user_id=req.user.id;
+      //values for filtering 
       const {taskname,category,completed,sort,order}= req.query;
+      //extracting page and limit from a url query, 
+      //Also automatically change it to integer and if not the same data type there's a default value
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+      //Assigning the sort query to an empty string
       let sortQuery = "";
+      //conditions and values contain the query and values respectively 
       let conditions=["user_id=$1"];
       let values=[user_id];
-
+    
+      //Validating condtions for completed,taskname, category
         if (completed !== undefined ) {
             if(completed !== "true" &&completed !== "false") {
             return res.status(400).json({
@@ -40,28 +48,32 @@ const getall = async (req, res) => {
         conditions.push(`taskname ILIKE $${values.length + 1}`);
             values.push(`%${taskname}%`);
         }
+    //Sorting
     if(sort){
+        //valid sort columns
     const allowedSort = ["taskname", "category", "completed"];
-
     if(!allowedSort.includes(sort)){
         return res.status(400).json({
             success:false,
             message:"Invalid sort field"
         });
     }
+    //A variable the holds an order wheter to be : DESC /ASC
     const sortOrder = order === "desc" ? "DESC" : "ASC";
     sortQuery = `ORDER BY ${sort} ${sortOrder}`;
 }
+    //For page limit
    const offset= (page-1)*limit;
     let countValues=[...values]
+    //checking validity of page and limit
 if(isNaN(page) || page < 1 ||
    isNaN(limit) || limit < 1){
     return res.status(400).json({
         success:false,
         message:"Page and limit should be greater than 0"
     });
-}
-
+} 
+    
     let query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
     { 
     query += ` LIMIT $${values.length+1} OFFSET $${values.length+2}`
@@ -75,13 +87,14 @@ if(isNaN(page) || page < 1 ||
         message: "Task not found"
     });
 }
+   //To return metadata about the available tasks
     const countQuery=`SELECT COUNT(*) AS total 
                       FROM tasks WHERE ${conditions.join(" AND ")}`;
     const countResult = await pool.query(countQuery, countValues);
 
     const totaltasks= Number(countResult.rows[0].total);
     const totalPages= Math.ceil(totaltasks/limit);
-    const nextPage= page< totalPages;
+    const nextPage= page < totalPages;
     const prevPage= page>1;
     
     res.status(200).json({
@@ -105,13 +118,17 @@ if(isNaN(page) || page < 1 ||
     }
 };
 
+//getting a single tasks using a task ID
 const getTasks=async (req, res) => {
     try {
+        //extracting id from a url
         const {id}= req.params;
         const user_id=req.user.id;
+        //A query to extract a single task based on ID and user's id
         const result = await pool.query(
         "SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
         
+        //If no rows match
     if(result.rows.length===0){
         return res.status(404).json({
             success:false,
@@ -132,6 +149,7 @@ const getTasks=async (req, res) => {
   }
 };
 
+//To add new tasks
 const addTask= async (req,res)=>{
    
      try{
