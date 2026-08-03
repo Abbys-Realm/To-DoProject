@@ -1,28 +1,30 @@
 const JWT= require("jsonwebtoken");
-   
+
+//Handles authorization for a user task
 
 const authMiddleware= (req,res,next)=>{
+  //Assigning a variable to a request header that handles authorization 
+  //via jwtoken
   const authHeader=req.headers.authorization;
   
+  //if no token provided
   if(!authHeader){
     return res.status(401).json({
         success:false,
         message:"No token provided"
     })
   }
+  //check format of token
   if(!authHeader.startsWith("Bearer ")){
     return res.status(401).json({
         success:false,
         message:"Invalid token format"
     })
   }
-  const token= authHeader.split(" ")[1];
   try{
+    //.verify(): check token validity, signed with the correct secret key and its expiration
+    //if token is valid, it decodes the token and return data
   const decoded=JWT.verify(token, process.env.JWT_SECRET);
-  console.log(decoded)
-  req.user=decoded;
-  //console.log(token)
- //console.log("authorization header: ",authHeader);
  next();}
  catch(error){
     console.log("JWT error: ", token)

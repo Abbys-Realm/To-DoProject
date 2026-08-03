@@ -271,9 +271,12 @@ const patchTask= async (req,res)=>{
         }
 
         values.push(id);
+        values.push(userID);
+
+        //IDplace and UIDplace will hold the length of the values to update
         const IDplace= values.length;
 
-        values.push(userID);
+
         const UIDplace=values.length
 
         const query = `
@@ -284,10 +287,10 @@ const patchTask= async (req,res)=>{
             RETURNING *
         `;
 
-
+        //store the update query and values 
         const result = await pool.query(query, values);
 
-
+         //if db return no rows, task doesnt exist
         if (result.rows.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -316,8 +319,10 @@ const patchTask= async (req,res)=>{
 const deleteTask = async (req, res) => {
 
     try {
+        //extract id from the url
     const id = Number(req.params.id);
     const user_id= req.user.id;
+    //A query to delete a specific task from a user
         const result = await pool.query(
             `DELETE FROM tasks
              WHERE id = $1
