@@ -1,8 +1,8 @@
-const { json } = require('express')
+const { json } = require('express');
 const pool= require("../Config/db")
 
 //Getting all tasks
-const getall = async (req, res) => {
+const getall = async (req, res, next) => {
         try {
     //To uniquely identify users tasks to each one 
       const user_id=req.user.id;
@@ -109,17 +109,12 @@ if(isNaN(page) || page < 1 ||
             data:result.rows
         });
     } catch(error){
-
-        console.log(error);
-        res.status(500).json({
-            success:false,
-            message:"Server error"
-        });
+        next(error);
     }
 };
 
 //getting a single tasks using a task ID
-const getTasks=async (req, res) => {
+const getTasks=async (req, res,next) => {
     try {
         //extracting id from a url
         const {id}= req.params;
@@ -141,16 +136,12 @@ const getTasks=async (req, res) => {
         });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+        next(error);
   }
 };
 
 //To add new tasks
-const addTask= async (req,res)=>{
+const addTask= async (req,res, next)=>{
    
      try{
         const user_id= req.user.id;
@@ -170,15 +161,13 @@ const addTask= async (req,res)=>{
     res.status(201).json({success:"true", data:result.rows[0]});
 }
    catch(error){
-    console.log(error);
-    res.status(500).json({
-        success:false,
-        message:"server error"
-    })
+        next(error);
    }
 }
 
-const updateTask= async (req,res)=>{
+const updateTask= async (req,res, next)=>{
+    try 
+     {
     const id=req.params.id;
     const user_id= req.user.id;
       const {taskname,category,completed}= req.body;
@@ -200,9 +189,6 @@ const updateTask= async (req,res)=>{
             return res.status(400).json({message:"taskname must be string"})
         }
          
-    
-     try 
-     {
         const result= await pool.query(`UPDATE tasks SET
             taskname=$1,
             category=$2,
@@ -219,16 +205,10 @@ const updateTask= async (req,res)=>{
             data:result.rows[0]
         })
         }catch(error){
-            console.log(error);
-            res.status(500).json({
-        success:false,
-        message:"server error"
-    })
+        next(error);
         }
-
-
 }
-const patchTask= async (req,res)=>{
+const patchTask= async (req,res, next)=>{
     const id= Number(req.params.id);
     const userID= req.user.id;
     const {taskname, category, completed}= req.body;
@@ -307,16 +287,12 @@ const patchTask= async (req,res)=>{
 
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        next(error);
     }
 };
 
 
-const deleteTask = async (req, res) => {
+const deleteTask = async (req, res, next) => {
 
     try {
         //extract id from the url
@@ -345,12 +321,7 @@ const deleteTask = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        next(error);
     }
 };
 module.exports={getall,getTasks, addTask, updateTask, patchTask, deleteTask};

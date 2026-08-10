@@ -43,7 +43,7 @@ const login= async (req,res)=>{
       },
       process.env.JWT_SECRET,
       {
-         expiresIn:"2h"
+         expiresIn:"7d"
       }
    )
    //displaying user's token and success message when they login:
