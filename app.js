@@ -2,6 +2,7 @@ require("dotenv").config();
 const express= require('express');
 require("./Config/db")
 const taskroute= require('./Routes/tasks');
+const subtaskRoute= require('./Routes/subtask-route')
 const authRoutes= require('./Routes/authRoutes');
 const errorHandle= require('./Middleware/errorhandlingMiddleware');
 
@@ -17,7 +18,7 @@ app.use(express.urlencoded({extended: false}));
 //Routes
 app.use('/auth', authRoutes)
 app.use('/tasks', taskroute)
-
+app.use('/:taskID/subtasks',subtaskRoute)
 
 //Home Route
 app.get('/',(req,res)=>{

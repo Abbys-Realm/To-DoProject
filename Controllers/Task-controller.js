@@ -250,14 +250,13 @@ const patchTask= async (req,res, next)=>{
             values.push(completed);
         }
 
-        values.push(id);
-        values.push(userID);
 
         //IDplace and UIDplace will hold the length of the values to update
         const IDplace= values.length;
+        values.push(id);
 
-
-        const UIDplace=values.length
+        const UIDplace=values.length;
+        values.push(userID);
 
         const query = `
             UPDATE tasks
