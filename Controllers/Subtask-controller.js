@@ -8,8 +8,6 @@ const getSubtasks= async (req,res,next)=>{
 
         let condition=["task_id=$1"];
         let value=[task_id];
-
-        const task_id = Number(req.params.taskID);
         const {title, completed, sort, order}= req.query;
 
        
@@ -107,7 +105,7 @@ const addSubtask=async (req,res,next)=>{
 const updateSubtask= async (req,res, next)=>{
   try{
     const id= Number(req.params.id);
-    const task_id= Number(req.params.taskID);
+   // const task_id= Number(req.params.taskID);
     const {title, completed, task_id}= req.body;
       if(title === undefined||completed === undefined)
       {

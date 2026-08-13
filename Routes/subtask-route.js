@@ -11,7 +11,7 @@ const {getSubtasks, getSubtask,addSubtask,
 
 
 route.get('/',authMiddleware, getSubtasks);
-route.get('/:id',authMiddleware,getSubtasks);
+route.get('/:id',authMiddleware,getSubtask);
 route.post('/add',authMiddleware,addSubtask);
 route.put('/update/:id',authMiddleware,updateSubtask);
 route.patch('/partial/:id',authMiddleware,patchSubtask);
