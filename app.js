@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended: false}));
 //Routes
 app.use('/auth', authRoutes)
 app.use('/tasks', taskroute)
-app.use('/:taskID/subtasks',subtaskRoute)
+app.use('/tasks/:taskID/subtasks',subtaskRoute)
 
 //Home Route
 app.get('/',(req,res)=>{

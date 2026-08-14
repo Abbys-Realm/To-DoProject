@@ -30,9 +30,26 @@ const getSubtasks= async (req,res,next)=>{
         condition.push(`title ILIKE $${value.length + 1}`);
             value.push(`%${title}%`);
         }    
+        
+        let sortQuery="";
+        if(sort !== undefined){
+            const allowedSort= ["title", "completed"];
+
+            if(!allowedSort.includes(sort)){
+                return res.status(400).json({
+                    success:false,
+                    message:"invalid sort field"
+                })
+            }
+            const sortOrder= order ==="desc"? "DESC" :"ASC";
+
+            sortQuery=`ORDER BY ${sort} ${sortOrder}`;
+        }
 
         const result= await pool.query(`SELECT * FROM subtasks
-                    WHERE  ${condition.join(" AND ")}`)
+                    WHERE  ${condition.join(" AND ")}
+                    ${sortQuery}`,
+                     value)
         res.status(200).json({
             success: true,
             data: result.rows
@@ -89,9 +106,9 @@ const addSubtask=async (req,res,next)=>{
                 message: "completed must be a boolean"
             });
         }
-        const result= await pool.query(`INSERT INTO subtask (task_id,title,completed)
-                                     VALUES($1,$2.$3) RETURNING *`,
-                                    [title, task_id, completed ?? false])
+        const result= await pool.query(`INSERT INTO subtasks (task_id,title,completed)
+                                     VALUES($1,$2,$3) RETURNING *`,
+                                    [task_id, title, completed ?? false])
         res.status(201).json({
             success:true, 
             data:result.rows[0]
@@ -105,8 +122,8 @@ const addSubtask=async (req,res,next)=>{
 const updateSubtask= async (req,res, next)=>{
   try{
     const id= Number(req.params.id);
-   // const task_id= Number(req.params.taskID);
-    const {title, completed, task_id}= req.body;
+    const task_id= Number(req.params.taskID);
+    const {title, completed}= req.body;
       if(title === undefined||completed === undefined)
       {
         return res.status(400).json({
@@ -118,12 +135,15 @@ const updateSubtask= async (req,res, next)=>{
       if(typeof title !=="string"){
             return res.status(400).json({message:"title must be string"})
         }
-      if(typeof complete !=="string"){
-            return res.status(400).json({message:"completed must be string"})
+        if (typeof completed !== "boolean") {
+            return res.status(400).json({
+                success: false,
+                message: "completed must be a boolean"
+            });
         }
-    const result= await pool.query(`UPDATE subtask
+    const result= await pool.query(`UPDATE subtasks
         SET title=$1, completed=$2 WHERE id= $3 AND task_id=$4
-    RETURNING *`,[title,complete,id,task_id])
+    RETURNING *`,[title,completed,id,task_id])
 
     if(result.rows.length===0){
         return res.status(404).json({
@@ -164,7 +184,7 @@ const patchSubtask= async (req,res,next)=>{
             })
         }
         query.push(`title =$${value.length+1}`);
-        values.push(title)
+        value.push(title)
     }
     if(completed !== undefined){
         if(typeof completed !== "boolean"){
@@ -173,12 +193,12 @@ const patchSubtask= async (req,res,next)=>{
                 message: "Completed must be boolean"
             })
         }
-    query.push(`compeleted =$${value.length+1}`);
-        values.push(completed)
+    query.push(`completed =$${value.length+1}`);
+        value.push(completed)
     }
 
-    values.push(id)
-    values.push(task_id)
+    value.push(id)
+    value.push(task_id)
 
 
         const result = await pool.query(

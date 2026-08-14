@@ -10,7 +10,7 @@ const{
 //Routes for methods
 router.get('/',authMiddleware,getall);
 router.get('/:id',authMiddleware,getTasks);
-router.post('/add',authMiddleware,addTask);
+router.post('/',authMiddleware,addTask);
 router.put('/update/:id',authMiddleware,updateTask);
 router.patch('/:id',authMiddleware,patchTask);
 router.delete('/delete/:id',authMiddleware,deleteTask);
