@@ -12,7 +12,7 @@ const {getSubtasks, getSubtask,addSubtask,
 
 route.get('/',authMiddleware, getSubtasks);
 route.get('/:id',authMiddleware,getSubtask);
-route.post('/',authMiddleware,addSubtask);
+route.post('/add',authMiddleware,addSubtask);
 route.put('/update/:id',authMiddleware,updateSubtask);
 route.patch('/partial/:id',authMiddleware,patchSubtask);
 route.delete('/delete/:id',authMiddleware,deleteSubtask);
