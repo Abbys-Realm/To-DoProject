@@ -1,4 +1,4 @@
-const {json}= require('express');
+const {json}= require('express')
 const pool = require("../Config/db")
 
 
@@ -41,11 +41,16 @@ const getSubtasks= async (req,res,next)=>{
                     message:"invalid sort field"
                 })
             }
+        if(order !== undefined && order !=="asc" && order !== "desc"){
+            return res.status(400).json({
+                success:false,
+                message:"Use asc or"
+            })
             const sortOrder= order ==="desc"? "DESC" :"ASC";
 
             sortQuery=`ORDER BY ${sort} ${sortOrder}`;
         }
-
+    }
         const result= await pool.query(`SELECT * FROM subtasks
                     WHERE  ${condition.join(" AND ")}
                     ${sortQuery}`,
@@ -59,7 +64,6 @@ const getSubtasks= async (req,res,next)=>{
        next(error);
     }
 }
-
 
 const getSubtask= async (req,res, next)=>{
     try{
