@@ -81,12 +81,12 @@ if(isNaN(page) || page < 1 ||
          values.push(offset);}
          const result = await pool.query(query, values);
         
-    if (result.rows.length === 0) {
-        return res.status(404).json({
-        success: false,
-        message: "Task not found"
-    });
-}
+//     if (result.rows.length === 0) {
+//         return res.status(404).json({
+//         success: false,
+//         message: "Task not found"
+//     });
+// }
    //To return metadata about the available tasks
     const countQuery=`SELECT COUNT(*) AS total 
                       FROM tasks WHERE ${conditions.join(" AND ")}`;
@@ -124,12 +124,12 @@ const getTasks=async (req, res,next) => {
         "SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
         
         //If no rows match
-    if(result.rows.length===0){
-        return res.status(404).json({
-            success:false,
-            message:"task not found"
-        })
-    }
+    // if(result.rows.length===0){
+    //     return res.status(404).json({
+    //         success:false,
+    //         message:"task not found"
+    //     })
+    // }
         res.status(200).json({
             success: true,
             data: result.rows[0]
@@ -195,11 +195,12 @@ const updateTask= async (req,res, next)=>{
             completed= $3 WHERE id= $4 
             AND user_id= $5 RETURNING *`,
         [taskname,category,completed,id,user_id]) 
-        if(result.rows.length===0){
-            return res.status(404).json({
-                success:false,
-                message:`no task with the id`})
-        }
+    
+        // if(result.rows.length===0){
+        //     return res.status(404).json({
+        //         success:false,
+        //         message:`no task with the id`})
+        // }
         res.status(200).json({
             success:true,
             data:result.rows[0]
@@ -270,12 +271,12 @@ const patchTask= async (req,res, next)=>{
         const result = await pool.query(query, values);
 
          //if db return no rows, task doesnt exist
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Task not found"
-            });
-        }
+        // if (result.rows.length === 0) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "Task not found"
+        //     });
+        // }
 
 
         return res.status(200).json({
@@ -306,12 +307,12 @@ const deleteTask = async (req, res, next) => {
             [id,user_id]
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Task doesn't exist"
-            });
-        }
+        // if (result.rows.length === 0) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "Task doesn't exist"
+        //     });
+        // }
 
         res.status(200).json({
             success: true,
