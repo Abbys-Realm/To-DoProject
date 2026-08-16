@@ -72,11 +72,6 @@ const getSubtask= async (req,res, next)=>{
 
         const result= await pool.query(`SELECT * FROM subtasks WHERE id=$1 AND task_id=$2 `,[id,task_id])
         
-        if(result.rows.length===0){
-        return res.status(404).json({
-        success:false,
-        message:"subtask not found"})
-        }
        res.status(200).json({
         success: true,
         data: result.rows[0]
@@ -149,12 +144,6 @@ const updateSubtask= async (req,res, next)=>{
         SET title=$1, completed=$2 WHERE id= $3 AND task_id=$4
     RETURNING *`,[title,completed,id,task_id])
 
-    if(result.rows.length===0){
-        return res.status(404).json({
-            success: false,
-            message:"Subtask not found"
-        })
-    }
    res.status(200).json({
     success:true,
     message:"Updates successfully",
@@ -214,13 +203,6 @@ const patchSubtask= async (req,res,next)=>{
             value
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Subtask not found"
-            });
-        }
-
         res.status(200).json({
             success: true,
             message: "Subtask updated successfully",
@@ -241,12 +223,6 @@ const deleteSubtask= async (req,res)=>{
             [id,task_id]
         )
 
-        if(result.rows.length===0){
-            return res.status(404).json({
-                success:false,
-                message:"Subtask not found"
-            })
-        }
        res.status(200).json({
         success:true,
         data: result.rows[0]
@@ -254,8 +230,6 @@ const deleteSubtask= async (req,res)=>{
     } catch(error){
        next(error);
  }
-
-
 }
 
 module.exports={getSubtasks, getSubtask,addSubtask,
