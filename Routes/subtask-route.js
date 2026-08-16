@@ -3,6 +3,7 @@ const express= require('express')
 //that were defined in the parent router/app
 const route = express.Router({mergeParams :true})
 const authMiddleware= require("../Middleware/authMiddleware")
+const subtaskNotFound= require("../Middleware/subtaskMiddleware")
 
 
 const {getSubtasks, getSubtask,addSubtask,
@@ -11,11 +12,11 @@ const {getSubtasks, getSubtask,addSubtask,
 
 
 route.get('/',authMiddleware, getSubtasks);
-route.get('/:id',authMiddleware,getSubtask);
-route.post('/add',authMiddleware,addSubtask);
-route.put('/update/:id',authMiddleware,updateSubtask);
-route.patch('/partial/:id',authMiddleware,patchSubtask);
-route.delete('/delete/:id',authMiddleware,deleteSubtask);
+route.get('/:id',authMiddleware,subtaskNotFound,getSubtask);
+route.post('/add',authMiddleware,subtaskNotFound,addSubtask);
+route.put('/update/:id',authMiddleware,subtaskNotFound,updateSubtask);
+route.patch('/partial/:id',authMiddleware,subtaskNotFound,patchSubtask);
+route.delete('/delete/:id',authMiddleware,subtaskNotFound,deleteSubtask);
 
 
 module.exports = route;
