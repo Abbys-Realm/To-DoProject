@@ -1,327 +1,458 @@
-const { json } = require('express');
-const pool= require("../Config/db")
+const pool = require('../Config/db');
 
-//Getting all tasks
-const getall = async (req, res, next) => {
-        try {
-    //To uniquely identify users tasks to each one 
-      const user_id=req.user.id;
-      //values for filtering 
-      const {taskname,category,completed,sort,order}= req.query;
-      //extracting page and limit from a url query, 
-      //Also automatically change it to integer and if not the same data type there's a default value
-      const page = req.query.page ? parseInt(req.query.page) : 1;
-      const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-      //Assigning the sort query to an empty string
-      let sortQuery = "";
-      //conditions and values contain the query and values respectively 
-      let conditions=["user_id=$1"];
-      let values=[user_id];
-    
-      //Validating condtions for completed,taskname, category
-        if (completed !== undefined ) {
-            if(completed !== "true" &&completed !== "false") {
-            return res.status(400).json({
-                success: false,
-                message: "completed must be true or false"}); }
+//Allowed sort fields
+const ALLOWED_SORT_FIELDS = [
+  'id', 'taskname', 'category', 'completed',
+  'priority', 'due_date', 'created_at', 'important',
+];
 
-            conditions.push(`completed=$${values.length+1}`);
-            values.push(JSON.parse(completed))
-        }
-    if(category !== undefined) {
-        if( !/^[A-Za-z ]+$/.test(category)){
-        return res.status(400).json({
-        success:false,
-        message:"Category must be string"
-      })
-   }
-    conditions.push(`category=$${values.length+1}`)
-    values.push(category);
-    }
- 
-    if(taskname !== undefined){
-        if( !/^[A-Za-z ]+$/.test(taskname)){
-         return res.status(400).json({
-          success:false,
-          message:"taskname must be a string"});}
-         
-        conditions.push(`taskname ILIKE $${values.length + 1}`);
-            values.push(`%${taskname}%`);
-        }
-    //Sorting
-    if(sort){
-        //valid sort columns
-    const allowedSort = ["taskname", "category", "completed"];
-    if(!allowedSort.includes(sort)){
-        return res.status(400).json({
-            success:false,
-            message:"Invalid sort field"
-        });
-    }
-    //A variable the holds an order wheter to be : DESC /ASC
-    const sortOrder = order === "desc" ? "DESC" : "ASC";
-    sortQuery = `ORDER BY ${sort} ${sortOrder}`;
+// Valid values
+const VALID_PRIORITIES = ['low', 'medium', 'high'];
+const VALID_FREQUENCIES = ['none', 'daily', 'weekly', 'monthly'];
+
+//Normalize priority
+function normalizePriority(val) {
+  if (val === undefined || val === null) return 'medium';
+  const normalized = String(val).toLowerCase().trim();
+  return VALID_PRIORITIES.includes(normalized) ? normalized : null;
 }
-    //For page limit
-   const offset= (page-1)*limit;
-    let countValues=[...values]
-    //checking validity of page and limit
-if(isNaN(page) || page < 1 ||
-   isNaN(limit) || limit < 1){
-    return res.status(400).json({
-        success:false,
-        message:"Page and limit should be greater than 0"
-    });
-} 
-    
-    let query=`SELECT * FROM tasks WHERE ${conditions.join(" AND ")} ${sortQuery} `;
-    { 
-    query += ` LIMIT $${values.length+1} OFFSET $${values.length+2}`
-         values.push(limit);
-         values.push(offset);}
-         const result = await pool.query(query, values);
-        
-//     if (result.rows.length === 0) {
-//         return res.status(404).json({
-//         success: false,
-//         message: "Task not found"
-//     });
-// }
-   //To return metadata about the available tasks
-    const countQuery=`SELECT COUNT(*) AS total 
-                      FROM tasks WHERE ${conditions.join(" AND ")}`;
+
+//Normalize frequency
+function normalizeFrequency(val) {
+  if (val === undefined || val === null) return null;
+  const normalized = String(val).toLowerCase().trim();
+  if (normalized === 'none' || normalized === '') return null;
+  return VALID_FREQUENCIES.includes(normalized) ? normalized : null;
+}
+
+// GET /tasks
+const getall = async (req, res, next) => {
+  try {
+    // User isolation
+    const user_id = req.user.id;
+
+    // Extract query params
+    const { taskname, category, completed, priority, important, sort, order } = req.query;
+    const page  = req.query.page  ? parseInt(req.query.page)  : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+    // Validate page/limit early
+    if (isNaN(page) || page < 1 || isNaN(limit) || limit < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Page and limit should be greater than 0',
+      });
+    }
+
+    let sortQuery = '';
+    let conditions = ['user_id=$1'];
+    let values = [user_id];
+
+    //  Filter- completed 
+    if (completed !== undefined) {
+      if (completed !== 'true' && completed !== 'false') {
+        return res.status(400).json({ success: false, message: 'completed must be true or false' });
+      }
+      conditions.push(`completed=$${values.length + 1}`);
+      values.push(JSON.parse(completed));
+    }
+
+    // Filter- category 
+    if (category !== undefined) {
+      if (!/^[A-Za-z ]+$/.test(category)) {
+        return res.status(400).json({ success: false, message: 'Category must be a string' });
+      }
+      conditions.push(`category=$${values.length + 1}`);
+      values.push(category);
+    }
+
+    // Filter- taskname (search) 
+    if (taskname !== undefined) {
+      if (!/^[A-Za-z0-9 ]+$/.test(taskname)) {
+        return res.status(400).json({ success: false, message: 'taskname must be a string' });
+      }
+      conditions.push(`taskname ILIKE $${values.length + 1}`);
+      values.push(`%${taskname}%`);
+    }
+
+    // Filter- priority
+    if (priority !== undefined) {
+      const p = String(priority).toLowerCase().trim();
+      if (!VALID_PRIORITIES.includes(p)) {
+        return res.status(400).json({ success: false, message: 'priority must be low, medium, or high' });
+      }
+      conditions.push(`priority=$${values.length + 1}`);
+      values.push(p);
+    }
+
+    //Filter- important
+    if (important !== undefined) {
+      if (important !== 'true' && important !== 'false') {
+        return res.status(400).json({ success: false, message: 'important must be true or false' });
+      }
+      conditions.push(`important=$${values.length + 1}`);
+      values.push(JSON.parse(important));
+    }
+
+    // Sorting
+    if (sort) {
+      if (!ALLOWED_SORT_FIELDS.includes(sort)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid sort field. Allowed: ${ALLOWED_SORT_FIELDS.join(', ')}`,
+        });
+      }
+      const sortOrder = order === 'desc' ? 'DESC' : 'ASC';
+      sortQuery = `ORDER BY ${sort} ${sortOrder}`;
+    }
+
+    //Pagination
+    const offset = (page - 1) * limit;
+    const countValues = [...values];
+
+    let query = `SELECT * FROM tasks WHERE ${conditions.join(' AND ')} ${sortQuery}`;
+    query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    values.push(limit);
+    values.push(offset);
+
+    const result = await pool.query(query, values);
+
+    // Pagination metadata
+    const countQuery = `SELECT COUNT(*) AS total FROM tasks WHERE ${conditions.join(' AND ')}`;
     const countResult = await pool.query(countQuery, countValues);
 
-    const totaltasks= Number(countResult.rows[0].total);
-    const totalPages= Math.ceil(totaltasks/limit);
-    const nextPage= page < totalPages;
-    const prevPage= page>1;
-    
+    const totaltasks = Number(countResult.rows[0].total);
+    const totalPages = Math.ceil(totaltasks / limit);
+
     res.status(200).json({
-            success:true,
-            page,
-            limit,
-            totaltasks,
-            totalPages,
-            nextPage,
-            prevPage,
-            count: result.rows.length,
-            data:result.rows
-        });
-    } catch(error){
-        next(error);
-    }
-};
-
-//getting a single tasks using a task ID
-const getTasks=async (req, res,next) => {
-    try {
-        //extracting id from a url
-        const {id}= req.params;
-        const user_id=req.user.id;
-        //A query to extract a single task based on ID and user's id
-        const result = await pool.query(
-        "SELECT * FROM tasks WHERE id =$1 AND user_id=$2",[id,user_id]);
-        
-        //If no rows match
-    // if(result.rows.length===0){
-    //     return res.status(404).json({
-    //         success:false,
-    //         message:"task not found"
-    //     })
-    // }
-        res.status(200).json({
-            success: true,
-            data: result.rows[0]
-        });
-
+      success: true,
+      page,
+      limit,
+      totaltasks,
+      totalPages,
+      nextPage: page < totalPages,
+      prevPage: page > 1,
+      count: result.rows.length,
+      data: result.rows,
+    });
   } catch (error) {
-        next(error);
+    next(error);
   }
 };
 
-//To add new tasks
-const addTask= async (req,res, next)=>{
-   
-     try{
-        const user_id= req.user.id;
-        const {taskname, category,completed}= req.body;
-        if(!taskname||!category||completed===undefined){
-        return res.status(400).json({
-            success:false,
-            message:"each field is required"
-        })
-     }
-        const result= await pool.query(`INSERT INTO tasks
-            (taskname,category,completed,user_id)
-            values($1,$2,$3,$4) RETURNING *`,
-        [taskname,category,completed,user_id]
-    )
-     
-    res.status(201).json({success:"true", data:result.rows[0]});
-}
-   catch(error){
-        next(error);
-   }
-}
+//GET /tasks/:id
+const getTasks = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id;
 
-const updateTask= async (req,res, next)=>{
-    try 
-     {
-    const id=req.params.id;
-    const user_id= req.user.id;
-      const {taskname,category,completed}= req.body;
-      if(!taskname||!category||completed === undefined)
-      {
+    const result = await pool.query(
+      'SELECT * FROM tasks WHERE id=$1 AND user_id=$2',
+      [id, user_id]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//POST /tasks
+const addTask = async (req, res, next) => {
+  try {
+    const user_id = req.user.id;
+
+    // Extract supported fields
+    const {
+      taskname,
+      category,
+      completed = false,
+      description = null,
+      priority: rawPriority,
+      due_date = null,
+      important = false,
+      frequency: rawFrequency,
+    } = req.body;
+
+    // taskname remains required
+    if (!taskname || !category) {
+      return res.status(400).json({
+        success: false,
+        message: 'taskname and category are required',
+      });
+    }
+
+    // Validate types
+    if (typeof taskname !== 'string') {
+      return res.status(400).json({ success: false, message: 'taskname must be a string' });
+    }
+    if (typeof category !== 'string') {
+      return res.status(400).json({ success: false, message: 'category must be a string' });
+    }
+    if (typeof completed !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'completed must be a boolean' });
+    }
+    if (typeof important !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'important must be a boolean' });
+    }
+
+    // Normalize and validate priority
+    const priority = normalizePriority(rawPriority);
+    if (rawPriority !== undefined && rawPriority !== null && priority === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'priority must be low, medium, or high',
+      });
+    }
+
+    // Normalize frequency
+    const frequency = normalizeFrequency(rawFrequency);
+    if (rawFrequency !== undefined && rawFrequency !== null && rawFrequency !== 'none' && rawFrequency !== '') {
+      const check = String(rawFrequency).toLowerCase().trim();
+      if (!VALID_FREQUENCIES.includes(check) && check !== '') {
         return res.status(400).json({
-            success:false,
-            message:"every field is required"
-        })
+          success: false,
+          message: 'frequency must be none, daily, weekly, or monthly',
+        });
       }
-        
-        if(typeof taskname   !=="string"){
-            return res.status(400).json({message:"taskname must be string"})
-        }
-        if(typeof category!=="string"){
-            return res.status(400).json({message:"category must be string"})
-        }
-        if(typeof completed !=="boolean"){
-            return res.status(400).json({message:"taskname must be string"})
-        }
-         
-        const result= await pool.query(`UPDATE tasks SET
-            taskname=$1,
-            category=$2,
-            completed= $3 WHERE id= $4 
-            AND user_id= $5 RETURNING *`,
-        [taskname,category,completed,id,user_id]) 
-    
-        // if(result.rows.length===0){
-        //     return res.status(404).json({
-        //         success:false,
-        //         message:`no task with the id`})
-        // }
-        res.status(200).json({
-            success:true,
-            data:result.rows[0]
-        })
-        }catch(error){
-        next(error);
-        }
-}
-const patchTask= async (req,res, next)=>{
-    const id= Number(req.params.id);
-    const userID= req.user.id;
-    const {taskname, category, completed}= req.body;
-     
-   try{
-    //to check if any field is provided 
-    if(taskname===undefined&& category===undefined && completed===undefined){
-        return res.status(400).json({
-            success:false,
-            message:"no field provided to update"
-        })
     }
-    //if a field is provided , it'll check its data type
-     if(taskname !==undefined && typeof taskname!=="string" ) {
-         return res.status(400).json({message:"taskname must be stirng"})
-             }
-     if(category  !==undefined && typeof category!=="string"){
-            return res.status(400).json({message:"category must be stirng"})
-     }
-     if(completed  !==undefined && typeof completed !=="boolean" ){
-         return res.status(400).json({message:"complete must be stirng"})
-        }
-         
-         const fields=[]; //store the sql part of the code
-         const values=[];//store the actual data
 
-          if (taskname !== undefined) {
-            fields.push(`taskname = $${values.length + 1}`);
-            values.push(taskname);
-        }
-
-        if (category !== undefined) {
-            fields.push(`category = $${values.length + 1}`);
-            values.push(category);
-        }
-
-        if (completed !== undefined) {
-            fields.push(`completed = $${values.length + 1}`);
-            values.push(completed);
-        }
-
-
-        //IDplace and UIDplace will hold the length of the values to update
-        const IDplace= values.length;
-        values.push(id);
-
-        const UIDplace=values.length;
-        values.push(userID);
-
-        const query = `
-            UPDATE tasks
-            SET ${fields.join(", ")}
-            WHERE id = $${IDplace} 
-            AND user_id=$${UIDplace}
-            RETURNING *
-        `;
-
-        //store the update query and values 
-        const result = await pool.query(query, values);
-
-         //if db return no rows, task doesnt exist
-        // if (result.rows.length === 0) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Task not found"
-        //     });
-        // }
-
-
-        return res.status(200).json({
-            success: true,
-            message: "Task updated successfully",
-            task: result.rows[0]
-        });
-
-
-    } catch (error) {
-        next(error);
+    // Validate due_date
+    let dueDateValue = null;
+    if (due_date !== null && due_date !== undefined && due_date !== '') {
+      const parsed = new Date(due_date);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ success: false, message: 'due_date must be a valid date or null' });
+      }
+      dueDateValue = parsed.toISOString();
     }
+
+    const result = await pool.query(
+      `INSERT INTO tasks
+        (taskname, category, completed, user_id, description, priority, due_date, important, frequency)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [taskname, category, completed, user_id, description, priority, dueDateValue, important, frequency]
+    );
+
+    res.status(201).json({ success: 'true', data: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
 };
 
+//PUT /tasks/update/:id 
+const updateTask = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const user_id = req.user.id;
 
+    const {
+      taskname,
+      category,
+      completed,
+      description = null,
+      priority: rawPriority,
+      due_date = null,
+      important = false,
+      frequency: rawFrequency,
+    } = req.body;
+
+    //taskname and category full update
+    if (!taskname || !category || completed === undefined) {
+      return res.status(400).json({ success: false, message: 'taskname, category, and completed are required' });
+    }
+
+    if (typeof taskname !== 'string') {
+      return res.status(400).json({ success: false, message: 'taskname must be a string' });
+    }
+    if (typeof category !== 'string') {
+      return res.status(400).json({ success: false, message: 'category must be a string' });
+    }
+    if (typeof completed !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'completed must be a boolean' });
+    }
+    if (typeof important !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'important must be a boolean' });
+    }
+
+    const priority = normalizePriority(rawPriority);
+    if (rawPriority !== undefined && rawPriority !== null && priority === null) {
+      return res.status(400).json({ success: false, message: 'priority must be low, medium, or high' });
+    }
+
+    const frequency = normalizeFrequency(rawFrequency);
+
+    let dueDateValue = null;
+    if (due_date !== null && due_date !== undefined && due_date !== '') {
+      const parsed = new Date(due_date);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ success: false, message: 'due_date must be a valid date or null' });
+      }
+      dueDateValue = parsed.toISOString();
+    }
+
+    const result = await pool.query(
+      `UPDATE tasks SET
+        taskname=$1, category=$2, completed=$3,
+        description=$4, priority=$5, due_date=$6, important=$7, frequency=$8
+       WHERE id=$9 AND user_id=$10
+       RETURNING *`,
+      [taskname, category, completed, description, priority, dueDateValue, important, frequency, id, user_id]
+    );
+
+    res.status(200).json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//PATCH /tasks/:id 
+const patchTask = async (req, res, next) => {
+  const id = Number(req.params.id);
+  const userID = req.user.id;
+
+  try {
+    const {
+      taskname,
+      category,
+      completed,
+      description,
+      priority: rawPriority,
+      due_date,
+      important,
+      frequency: rawFrequency,
+    } = req.body;
+
+    // At least one field must be provided
+    if (
+      taskname === undefined &&
+      category === undefined &&
+      completed === undefined &&
+      description === undefined &&
+      rawPriority === undefined &&
+      due_date === undefined &&
+      important === undefined &&
+      rawFrequency === undefined
+    ) {
+      return res.status(400).json({ success: false, message: 'No field provided to update' });
+    }
+
+    // Validate supplied field
+    if (taskname !== undefined && typeof taskname !== 'string') {
+      return res.status(400).json({ success: false, message: 'taskname must be a string' });
+    }
+    if (category !== undefined && typeof category !== 'string') {
+      return res.status(400).json({ success: false, message: 'category must be a string' });
+    }
+    if (completed !== undefined && typeof completed !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'completed must be a boolean' });
+    }
+    if (important !== undefined && typeof important !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'important must be a boolean' });
+    }
+
+    let priorityVal;
+    if (rawPriority !== undefined) {
+      priorityVal = normalizePriority(rawPriority);
+      if (priorityVal === null) {
+        return res.status(400).json({ success: false, message: 'priority must be low, medium, or high' });
+      }
+    }
+
+    let frequencyVal;
+    if (rawFrequency !== undefined) {
+      frequencyVal = normalizeFrequency(rawFrequency);
+        if (rawFrequency !== null && rawFrequency !== '' && rawFrequency !== 'none') {
+        const check = String(rawFrequency).toLowerCase().trim();
+        if (!VALID_FREQUENCIES.includes(check)) {
+          return res.status(400).json({
+            success: false,
+            message: 'frequency must be none, daily, weekly, or monthly',
+          });
+        }
+      }
+    }
+
+    let dueDateVal;
+    if (due_date !== undefined) {
+      if (due_date === null || due_date === '') {
+        dueDateVal = null;
+      } else {
+        const parsed = new Date(due_date);
+        if (isNaN(parsed.getTime())) {
+          return res.status(400).json({ success: false, message: 'due_date must be a valid date or null' });
+        }
+        dueDateVal = parsed.toISOString();
+      }
+    }
+
+    const fields = [];
+    const values = [];
+    //Adding a provided field to fields and values array
+    if (taskname !== undefined)   
+     { fields.push(`taskname=$${values.length + 1}`);    values.push(taskname); }
+    if (category !== undefined)    
+      { fields.push(`category=$${values.length + 1}`);    values.push(category); }
+    if (completed !== undefined)   
+      { fields.push(`completed=$${values.length + 1}`);   values.push(completed); }
+    if (description !== undefined) 
+      { fields.push(`description=$${values.length + 1}`); values.push(description); }
+    if (priorityVal !== undefined) 
+      { fields.push(`priority=$${values.length + 1}`);    values.push(priorityVal); }
+    if (dueDateVal !== undefined) 
+       { fields.push(`due_date=$${values.length + 1}`);    values.push(dueDateVal); }
+    if (important !== undefined)  
+       { fields.push(`important=$${values.length + 1}`);   values.push(important); }
+    if (frequencyVal !== undefined)
+      { fields.push(`frequency=$${values.length + 1}`);   values.push(frequencyVal); }
+
+    const IDplace  = values.length + 1;
+    const UIDplace = values.length + 2;
+    values.push(id);
+    values.push(userID);
+
+    const query = `
+      UPDATE tasks
+      SET ${fields.join(', ')}
+      WHERE id=$${IDplace} AND user_id=$${UIDplace}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Task updated successfully',
+      task: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// DELETE /tasks/delete/:id 
 const deleteTask = async (req, res, next) => {
-
-    try {
-        //extract id from the url
+  try {
     const id = Number(req.params.id);
-    const user_id= req.user.id;
-    //A query to delete a specific task from a user
-        const result = await pool.query(
-            `DELETE FROM tasks
-             WHERE id = $1
-             AND user_id=$2
-             RETURNING *`,
-            [id,user_id]
-        );
+    const user_id = req.user.id;
 
-        // if (result.rows.length === 0) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "Task doesn't exist"
-        //     });
-        // }
+    const result = await pool.query(
+      `DELETE FROM tasks WHERE id=$1 AND user_id=$2 RETURNING *`,
+      [id, user_id]
+    );
 
-        res.status(200).json({
-            success: true,
-            message: "Task deleted successfully",
-            data: result.rows[0]
-        });
-
-    } catch (error) {
-        next(error);
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Task deleted successfully',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-module.exports={getall,getTasks, addTask, updateTask, patchTask, deleteTask};
+
+module.exports = { getall, getTasks, addTask, updateTask, patchTask, deleteTask };

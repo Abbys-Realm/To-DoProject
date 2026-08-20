@@ -11,7 +11,7 @@ const{
 //Routes for methods
 router.get('/',authMiddleware,getall);
 router.get('/:id',authMiddleware,taskNotFound,getTasks);
-router.post('/',authMiddleware,taskNotFound,addTask);
+router.post('/',authMiddleware,addTask);
 router.put('/update/:id',authMiddleware,taskNotFound,updateTask);
 router.patch('/:id',authMiddleware,taskNotFound,patchTask);
 router.delete('/delete/:id',authMiddleware,taskNotFound,deleteTask);
