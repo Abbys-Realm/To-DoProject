@@ -23,7 +23,6 @@ function Dashboard({ user, onLogout, darkMode, setDarkMode }) {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [headerSearch, setHeaderSearch] = useState('')
-  const [listSearch, setListSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('id')
   const [expandedTaskId, setExpandedTaskId] = useState(null)
@@ -151,7 +150,7 @@ if (statusFilter === 'active') {
   result = result.filter((t) => Boolean(t.completed || t.status === 'completed')) 
 }
     // Search filter
-    const query = (listSearch || headerSearch).trim().toLowerCase()
+    const query = headerSearch.trim().toLowerCase()
     if (query) {
       result = result.filter((t) => {
         const title    = (t.taskname || t.title || '').toLowerCase()
@@ -184,7 +183,7 @@ if (statusFilter === 'active') {
     })
 
     return result
-  }, [tasks, activeNav, statusFilter, listSearch, headerSearch, sortBy])
+  }, [tasks, activeNav, statusFilter, headerSearch, sortBy])
 
   const upcomingTasks = useMemo(() => {
     return tasks
@@ -469,8 +468,6 @@ if (statusFilter === 'active') {
               subtasksLoadingMap={subtasksLoadingMap}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
-              listSearch={listSearch}
-              onListSearchChange={setListSearch}
               sortBy={sortBy}
               onSortChange={setSortBy}
               expandedTaskId={expandedTaskId}

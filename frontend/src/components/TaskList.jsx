@@ -7,8 +7,6 @@ function TaskList({
   subtasksLoadingMap = {},
   statusFilter,
   onStatusFilterChange,
-  listSearch,
-  onListSearchChange,
   sortBy,
   onSortChange,
   expandedTaskId,
@@ -38,33 +36,19 @@ function TaskList({
         </button>
       </div>
 
-      <div className="task-toolbar">
-        <div className="task-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-3-3" />
-          </svg>
-          <input
-            type="search"
-            placeholder="Search tasks..."
-            value={listSearch}
-            onChange={(e) => onListSearchChange(e.target.value)}
-            aria-label="Filter tasks in list"
-          />
-        </div>
-
-        <div className="toolbar-right">
-          <label className="sort-control">
-            <span className="sr-only">Sort by</span>
-            <select value={sortBy} onChange={(e) => onSortChange(e.target.value)}>
-              <option value="id">Sort: Recent</option>
-              <option value="title">Sort: Name</option>
-              <option value="category">Sort: Category</option>
-              <option value="priority">Sort: Priority</option>
-              <option value="due_date">Sort: Due Date</option>
+<div className="task-toolbar">
+  <div className="toolbar-right">
+    <label className="sort-control">
+      <span className="sr-only">Sort by</span>
+      <select value={sortBy} onChange={(e) => onSortChange(e.target.value)}>
+        <option value="id">Sort: Recent</option>
+        <option value="title">Sort: Name</option>
+        <option value="category">Sort: Category</option>
+        <option value="priority">Sort: Priority</option>
+        <option value="due_date">Sort: Due Date</option>
             </select>
-          </label>
-        </div>
+            </label>
+          </div>
       </div>
 
       <div className="status-filters" role="tablist" aria-label="Task status">
