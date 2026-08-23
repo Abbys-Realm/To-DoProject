@@ -92,36 +92,6 @@
   border-color: var(--accent);
 }
 
-.status-filters {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 18px;
-  padding: 4px;
-  background: var(--bg-muted);
-  border-radius: var(--radius-sm);
-  width: fit-content;
-}
-
-.status-filter {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  transition: background var(--transition), color var(--transition),
-    box-shadow var(--transition);
-}
-
-.status-filter:hover {
-  color: var(--text-primary);
-}
-
-.status-filter.active {
-  background: var(--bg-surface);
-  color: var(--accent);
-  box-shadow: var(--shadow-sm);
-}
-
 .task-list {
   display: flex;
   flex-direction: column;

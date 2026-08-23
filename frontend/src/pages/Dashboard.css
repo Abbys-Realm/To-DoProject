@@ -1,8 +1,16 @@
 .dashboard-layout {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(124, 58, 237, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(14, 165, 233, 0.08), transparent),
+    radial-gradient(
+      ellipse 80% 50% at 10% -10%,
+      rgba(124, 58, 237, 0.12),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 100% 0%,
+      rgba(14, 165, 233, 0.08),
+      transparent
+    ),
     var(--bg-app);
 }
 
@@ -19,25 +27,80 @@
   margin-bottom: 28px;
 }
 
+/* Main dashboard layout */
 .dashboard-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px,1fr) minmax(300px, 0.85fr);
+  gap: 20px;
   align-items: start;
 }
 
-@media (max-width: 1100px) {
+.dashboard-tasks,
+.dashboard-calendar,
+.dashboard-progress {
+  min-width: 0;
+}
+
+/* Right side: Calendar on top, Progress underneath */
+.dashboard-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.dashboard-calendar,
+.dashboard-progress {
+  min-width: 0;
+}
+
+/* Pagination */
+.task-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.task-pagination button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-pagination button:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.task-pagination button.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.task-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tablet */
+@media (max-width: 1200px) {
   .dashboard-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
   }
 
-  .overview-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+  .dashboard-progress {
+    grid-column: 1 / -1;
   }
 }
 
+/* Mobile / smaller screens */
 @media (max-width: 900px) {
   .dashboard-main {
     margin-left: 0;
@@ -47,14 +110,18 @@
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-progress {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 640px) {
   .stats-row {
-    grid-template-columns: 1fr;
-  }
-
-  .overview-panel {
     grid-template-columns: 1fr;
   }
 }

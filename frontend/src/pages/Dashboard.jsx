@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import StatCard from '../components/StatCard'
 import TaskList from '../components/TaskList'
 import ProgressCard from '../components/ProgressCard'
+import CalendarCard from '../components/CalendarCard'
 import AddTaskModal from '../components/AddTaskModal'
 import EditTaskModal from '../components/EditTaskModal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -26,6 +27,8 @@ function Dashboard({ user, onLogout, darkMode, setDarkMode }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('id')
   const [expandedTaskId, setExpandedTaskId] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const TASKS_PER_PAGE = 5
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
@@ -122,68 +125,97 @@ const stats = useMemo(() => {
   // ── Filter & Sort ────────────────────────────────────────────────────────
   const visibleTasks = useMemo(() => {
     let result = [...tasks]
+  // Dashboard stat-card filter
+  if (statusFilter === 'active') {
+    result = result.filter(
+      (t) => !t.completed && t.status !== 'completed'
+    )
+  } else if (statusFilter === 'overdue') {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Sidebar navigation filter
-    if (activeNav === 'completed') {
-      result = result.filter((t) => Boolean(t.completed || t.status === 'completed'))
-    } else if (activeNav === 'important') {
-      result = result.filter((t) => Boolean(t.important))
-    }
+    result = result.filter((t) => {
+      if (t.completed || t.status === 'completed') return false
+      if (!t.due_date) return false
 
-// Status tab filter 
-if (statusFilter === 'active') { 
-  result = result.filter((t) => !t.completed && t.status !== 'completed') 
-} else if (statusFilter === 'overdue') {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+      const dueDate = new Date(t.due_date)
+      dueDate.setHours(0, 0, 0, 0)
 
-  result = result.filter((t) => {
-    if (t.completed || t.status === 'completed') return false
-    if (!t.due_date) return false
-
-    const dueDate = new Date(t.due_date)
-    dueDate.setHours(0, 0, 0, 0)
-
-    return dueDate < today
-  })
-} else if (statusFilter === 'completed') { 
-  result = result.filter((t) => Boolean(t.completed || t.status === 'completed')) 
-}
-    // Search filter
-    const query = headerSearch.trim().toLowerCase()
-    if (query) {
-      result = result.filter((t) => {
-        const title    = (t.taskname || t.title || '').toLowerCase()
-        const category = (t.category || '').toLowerCase()
-        const desc     = (t.description || '').toLowerCase()
-        return title.includes(query) || category.includes(query) || desc.includes(query)
-      })
-    }
-
-    // Sorting
-    result.sort((a, b) => {
-      if (sortBy === 'title') {
-        return (a.taskname || a.title || '').localeCompare(b.taskname || b.title || '')
-      }
-      if (sortBy === 'category') {
-        return (a.category || '').localeCompare(b.category || '')
-      }
-      if (sortBy === 'priority') {
-        const pa = PRIORITY_ORDER[a.priority] ?? 1
-        const pb = PRIORITY_ORDER[b.priority] ?? 1
-        return pa - pb // high first
-      }
-      if (sortBy === 'due_date') {
-        // nulls last
-        const da = a.due_date ? new Date(a.due_date).getTime() : Infinity
-        const db = b.due_date ? new Date(b.due_date).getTime() : Infinity
-        return da - db
-      }
-      return b.id - a.id // Recent first (default)
+      return dueDate < today
     })
+  } else if (statusFilter === 'completed') {
+    result = result.filter(
+      (t) => Boolean(t.completed || t.status === 'completed')
+    )
+  }
+    // Search filter
+  const query = headerSearch.trim().toLowerCase()
 
+  if (query) {
+    result = result.filter((t) => {
+      const title = (t.taskname || t.title || '').toLowerCase()
+      const category = (t.category || '').toLowerCase()
+      const desc = (t.description || '').toLowerCase()
+
+      return (
+        title.includes(query) ||
+        category.includes(query) ||
+        desc.includes(query)
+      )
+    })
+  }
+
+  // Sorting
+  result.sort((a, b) => {
+    if (sortBy === 'title') {
+      return (a.taskname || a.title || '').localeCompare(
+        b.taskname || b.title || ''
+      )
+    }
+
+    if (sortBy === 'category') {
+      return (a.category || '').localeCompare(b.category || '')
+    }
+
+    if (sortBy === 'priority') {
+      const pa = PRIORITY_ORDER[a.priority] ?? 1
+      const pb = PRIORITY_ORDER[b.priority] ?? 1
+      return pa - pb
+    }
+
+    if (sortBy === 'due_date') {
+      const da = a.due_date
+        ? new Date(a.due_date).getTime()
+        : Infinity
+
+      const db = b.due_date
+        ? new Date(b.due_date).getTime()
+        : Infinity
+
+      return da - db
+    }
+
+    return b.id - a.id
+  })
     return result
-  }, [tasks, activeNav, statusFilter, headerSearch, sortBy])
+  }, [tasks, statusFilter, headerSearch, sortBy])
+
+
+  //Pagination
+   const totalPages = Math.ceil(visibleTasks.length / TASKS_PER_PAGE)
+
+const paginatedTasks = useMemo(() => {
+  const startIndex = (currentPage - 1) * TASKS_PER_PAGE
+
+  return visibleTasks.slice(
+    startIndex,
+    startIndex + TASKS_PER_PAGE
+  )
+}, [visibleTasks, currentPage])
+
+useEffect(() => {
+  setCurrentPage(1)
+}, [statusFilter, headerSearch, sortBy])
 
   const upcomingTasks = useMemo(() => {
     return tasks
@@ -389,7 +421,7 @@ if (statusFilter === 'active') {
  const handleStatCardClick = (filter) => {
   setStatusFilter(filter)
 }
-  return (
+    return (
     <div className="dashboard-layout">
       <Sidebar
         user={user}
@@ -401,14 +433,15 @@ if (statusFilter === 'active') {
       />
 
       <div className="dashboard-main">
-        <Header 
-            user={user} 
-            searchQuery={headerSearch} 
-           onSearchChange={setHeaderSearch} 
-           onMenuClick={() => setSidebarOpen(true)}
-           darkMode={darkMode}
-            setDarkMode={setDarkMode}
-          />
+        <Header
+          user={user}
+          searchQuery={headerSearch}
+          onSearchChange={setHeaderSearch}
+          onMenuClick={() => setSidebarOpen(true)}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
+
         <div className="stats-row">
           <StatCard
             label="Total Tasks"
@@ -416,64 +449,82 @@ if (statusFilter === 'active') {
             accent="teal"
             onClick={() => handleStatCardClick('all')}
             icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M9 11l3 3L22 4" />
                 <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
               </svg>
             }
           />
+
           <StatCard
             label="Completed"
             value={stats.completed}
             accent="green"
             onClick={() => handleStatCardClick('completed')}
             icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="12" cy="12" r="9" />
                 <path d="M8 12l3 3 5-6" />
               </svg>
             }
           />
+
           <StatCard
             label="In Progress"
             value={stats.inProgress}
             accent="amber"
             onClick={() => handleStatCardClick('active')}
             icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 2" />
               </svg>
             }
           />
+
           <StatCard
-                label="Overdue"
-                value={stats.overdue}
-                accent="red"
-                onClick={() => handleStatCardClick('overdue')}
-                icon={
-        <svg
-          viewBox="0 0 24 24"
-         fill="none"
-  stroke="currentColor"
-  strokeWidth="2"
->
-  <path d="M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
-  <path d="M12 9v4" />
-  <path d="M12 16h.01" />
-</svg>
-  }
-/>
+            label="Overdue"
+            value={stats.overdue}
+            accent="red"
+            onClick={() => handleStatCardClick('overdue')}
+            icon={
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
+                <path d="M12 9v4" />
+                <path d="M12 16h.01" />
+              </svg>
+            }
+          />
         </div>
 
         <div className="dashboard-content">
+
+          {/* LEFT: TASKS */}
           <div className="dashboard-tasks">
             <TaskList
-              tasks={visibleTasks}
+              tasks={paginatedTasks}
               subtasksMap={subtasksMap}
               subtasksLoadingMap={subtasksLoadingMap}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
               sortBy={sortBy}
               onSortChange={setSortBy}
               expandedTaskId={expandedTaskId}
@@ -491,14 +542,59 @@ if (statusFilter === 'active') {
               loading={loading}
               error={error}
             />
+
+            {totalPages > 1 && (
+              <div className="task-pagination">
+                <button
+                  onClick={() =>
+                    setCurrentPage((page) => Math.max(page - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  ←
+                </button>
+
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((page) => (
+                  <button
+                    key={page}
+                    className={currentPage === page ? 'active' : ''}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((page) =>
+                      Math.min(page + 1, totalPages)
+                    )
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  →
+                </button>
+              </div>
+            )}
           </div>
 
-          <ProgressCard
-            completed={stats.completed}
-            remaining={stats.inProgress}
-            total={stats.total}
-            upcomingTasks={upcomingTasks}
-          />
+          {/* RIGHT: CALENDAR + PROGRESS */}
+      
+            <div className="dashboard-calendar">
+              <CalendarCard tasks={tasks} />
+            </div>
+
+            <div className="dashboard-progress">
+              <ProgressCard
+                completed={stats.completed}
+                remaining={stats.inProgress}
+                total={stats.total}
+                upcomingTasks={upcomingTasks}
+              />
+            </div>
         </div>
       </div>
 
