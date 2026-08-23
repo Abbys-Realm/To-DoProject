@@ -14,33 +14,42 @@ const navItems = [
     ),
   },
   {
-    id: 'tasks',
-    label: 'My Tasks',
+    id: 'categories',
+    label: 'Categories',
+    icon: (
+       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+       <path d="M20 13l-7 7-9-9V4h7l9 9z" />
+       <circle cx="7.5" cy="7.5" r="1.2" />
+  </svg>
+),
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M9 11l3 3L22 4" />
-        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+        <rect x="3" y="4" width="18" height="17" rx="2" />
+        <path d="M16 2v4M8 2v4M3 10h18" />
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
       </svg>
     ),
   },
   {
-    id: 'important',
-    label: 'Important',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'completed',
-    label: 'Completed',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M8 12l3 3 5-6" />
-      </svg>
-    ),
+    id: 'settings',
+    label: 'Settings',
+   icon: (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="7" />
+    <circle cx="12" cy="12" r="2.5" />
+  </svg>
+),
   },
 ]
 
