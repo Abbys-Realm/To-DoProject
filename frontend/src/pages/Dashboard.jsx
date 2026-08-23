@@ -386,7 +386,9 @@ if (statusFilter === 'active') {
       alert(err.message || 'Failed to delete subtask.')
     }
   }
-
+ const handleStatCardClick = (filter) => {
+  setStatusFilter(filter)
+}
   return (
     <div className="dashboard-layout">
       <Sidebar
@@ -412,6 +414,7 @@ if (statusFilter === 'active') {
             label="Total Tasks"
             value={stats.total}
             accent="teal"
+            onClick={() => handleStatCardClick('all')}
             icon={
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 11l3 3L22 4" />
@@ -423,6 +426,7 @@ if (statusFilter === 'active') {
             label="Completed"
             value={stats.completed}
             accent="green"
+            onClick={() => handleStatCardClick('completed')}
             icon={
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="9" />
@@ -434,6 +438,7 @@ if (statusFilter === 'active') {
             label="In Progress"
             value={stats.inProgress}
             accent="amber"
+            onClick={() => handleStatCardClick('active')}
             icon={
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="9" />
@@ -445,17 +450,18 @@ if (statusFilter === 'active') {
                 label="Overdue"
                 value={stats.overdue}
                 accent="red"
+                onClick={() => handleStatCardClick('overdue')}
                 icon={
-             <svg
+        <svg
           viewBox="0 0 24 24"
-          fill="none"
-         stroke="currentColor"
-         strokeWidth="2"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5" />
-      <path d="M12 16h.01" />
-    </svg>
+         fill="none"
+  stroke="currentColor"
+  strokeWidth="2"
+>
+  <path d="M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
+  <path d="M12 9v4" />
+  <path d="M12 16h.01" />
+</svg>
   }
 />
         </div>

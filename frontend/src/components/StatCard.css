@@ -56,6 +56,18 @@
   color: var(--text-secondary);
 }
 
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card.clickable:active {
+  transform: translateY(0);
+}
+
 /* Accent variants */
 .accent-teal .stat-icon {
   background: var(--accent-soft);

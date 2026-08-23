@@ -51,20 +51,24 @@ function TaskList({
           </div>
       </div>
 
-      <div className="status-filters" role="tablist" aria-label="Task status">
-        {['all', 'active','overdue', 'completed'].map((status) => (
-          <button
-            key={status}
-            type="button"
-            role="tab"
-            aria-selected={statusFilter === status}
-            className={`status-filter ${statusFilter === status ? 'active' : ''}`}
-            onClick={() => onStatusFilterChange(status)}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
-      </div>
+<div className="status-filters" role="tablist" aria-label="Task status">
+  {['all', 'active', 'overdue', 'completed'].map((status) => (
+    <button
+      key={status}
+      type="button"
+      role="tab"
+      aria-selected={statusFilter === status}
+      className={`status-filter ${statusFilter === status ? 'active' : ''}`}
+      onClick={() => onStatusFilterChange(status)}
+    >
+      {status === 'all'
+        ? 'Total Tasks'
+        : status === 'active'
+          ? 'In Progress'
+          : status.charAt(0).toUpperCase() + status.slice(1)}
+    </button>
+  ))}
+</div>
 
       {loading && (
         <div className="state-box loading-state" role="status">
