@@ -1,0 +1,205 @@
+.subtask-panel {
+  margin-top: 14px;
+  padding: 14px 16px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--accent);
+  animation: subtaskIn 0.2s ease;
+}
+
+@keyframes subtaskIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.subtask-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.subtask-header h4 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.subtask-progress-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.subtask-progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.subtask-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, #2563eb);
+  transition: width 0.3s ease;
+}
+
+.subtask-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.subtask-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  padding: 6px 0;
+}
+
+.subtask-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.subtask-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  transition: background var(--transition);
+}
+
+.subtask-item:hover {
+  background: var(--bg-surface);
+}
+
+.subtask-title-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  flex: 1;
+  cursor: pointer;
+}
+
+.subtask-row.done .subtask-title-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.subtask-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.subtask-item:hover .subtask-actions {
+  opacity: 1;
+}
+
+.subtask-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.subtask-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.subtask-btn:hover {
+  background: var(--bg-muted);
+}
+
+.subtask-btn.delete-btn:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.subtask-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+}
+
+.subtask-edit-input {
+  flex: 1;
+  font-size: 14px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+}
+
+.subtask-edit-input:focus {
+  outline: none;
+}
+
+.subtask-btn.save-btn:hover {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.add-subtask-form {
+  display: flex;
+  gap: 8px;
+}
+
+.add-subtask-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.add-subtask-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.add-subtask-form .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .subtask-actions {
+    opacity: 1;
+  }
+}

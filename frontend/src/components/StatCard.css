@@ -1,0 +1,94 @@
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Accent variants */
+.accent-teal .stat-icon {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.accent-teal .stat-indicator {
+  background: var(--accent);
+}
+
+.accent-green .stat-icon {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.accent-green .stat-indicator {
+  background: var(--success);
+}
+
+.accent-amber .stat-icon {
+  background: var(--priority-medium-bg);
+  color: var(--priority-medium);
+}
+
+.accent-amber .stat-indicator {
+  background: var(--priority-medium);
+}
+
+.accent-rose .stat-icon {
+  background: var(--priority-high-bg);
+  color: var(--priority-high);
+}
+
+.accent-rose .stat-indicator {
+  background: var(--priority-high);
+}
