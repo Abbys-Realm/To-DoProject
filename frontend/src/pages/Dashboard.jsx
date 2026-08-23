@@ -5,6 +5,7 @@ import StatCard from '../components/StatCard'
 import TaskList from '../components/TaskList'
 import ProgressCard from '../components/ProgressCard'
 import CalendarCard from '../components/CalendarCard'
+import Categories from '../components/Categories'
 import AddTaskModal from '../components/AddTaskModal'
 import EditTaskModal from '../components/EditTaskModal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -14,7 +15,7 @@ import './Dashboard.css'
 // ── Priority sort order (high first) ─────────────────────────────────────────
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 }
 
-function Dashboard({ user, onLogout, darkMode, setDarkMode }) {
+function Dashboard({ user, onLogout, darkMode, setDarkMode }){
   const [tasks, setTasks] = useState([])
   const [subtasksMap, setSubtasksMap] = useState({})
   const [subtasksLoadingMap, setSubtasksLoadingMap] = useState({})
@@ -422,171 +423,172 @@ useEffect(() => {
   setStatusFilter(filter)
 }
     return (
-    <div className="dashboard-layout">
-      <Sidebar
+  <div className="dashboard-layout">
+    <Sidebar
+      user={user}
+      activeNav={activeNav}
+      onNavChange={setActiveNav}
+      isOpen={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+      onLogout={onLogout}
+    />
+
+    <div className="dashboard-main">
+      <Header
         user={user}
-        activeNav={activeNav}
-        onNavChange={setActiveNav}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onLogout={onLogout}
+        searchQuery={headerSearch}
+        onSearchChange={setHeaderSearch}
+        onMenuClick={() => setSidebarOpen(true)}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
       />
 
-      <div className="dashboard-main">
-        <Header
-          user={user}
-          searchQuery={headerSearch}
-          onSearchChange={setHeaderSearch}
-          onMenuClick={() => setSidebarOpen(true)}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
-
-        <div className="stats-row">
-          <StatCard
-            label="Total Tasks"
-            value={stats.total}
-            accent="teal"
-            onClick={() => handleStatCardClick('all')}
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 11l3 3L22 4" />
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-              </svg>
-            }
-          />
-
-          <StatCard
-            label="Completed"
-            value={stats.completed}
-            accent="green"
-            onClick={() => handleStatCardClick('completed')}
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="9" />
-                <path d="M8 12l3 3 5-6" />
-              </svg>
-            }
-          />
-
-          <StatCard
-            label="In Progress"
-            value={stats.inProgress}
-            accent="amber"
-            onClick={() => handleStatCardClick('active')}
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 2" />
-              </svg>
-            }
-          />
-
-          <StatCard
-            label="Overdue"
-            value={stats.overdue}
-            accent="red"
-            onClick={() => handleStatCardClick('overdue')}
-            icon={
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
-                <path d="M12 9v4" />
-                <path d="M12 16h.01" />
-              </svg>
-            }
-          />
-        </div>
-
-        <div className="dashboard-content">
-
-          {/* LEFT: TASKS */}
-          <div className="dashboard-tasks">
-            <TaskList
-              tasks={paginatedTasks}
-              subtasksMap={subtasksMap}
-              subtasksLoadingMap={subtasksLoadingMap}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              expandedTaskId={expandedTaskId}
-              onToggleExpand={handleToggleExpand}
-              onToggleComplete={handleToggleComplete}
-              onToggleImportant={handleToggleImportant}
-              onEditTask={(task) => setEditingTask(task)}
-              onDeleteTask={(task) => setDeletingTask(task)}
-              onToggleSubtask={handleToggleSubtask}
-              onAddSubtask={handleAddSubtask}
-              onEditSubtask={handleEditSubtask}
-              onDeleteSubtask={handleDeleteSubtask}
-              onOpenAddModal={() => setIsAddModalOpen(true)}
-              onRetry={fetchTasks}
-              loading={loading}
-              error={error}
+      {activeNav === 'dashboard' && (
+        <>
+          <div className="stats-row">
+            <StatCard
+              label="Total Tasks"
+              value={stats.total}
+              accent="teal"
+              onClick={() => handleStatCardClick('all')}
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                </svg>
+              }
             />
 
-            {totalPages > 1 && (
-              <div className="task-pagination">
-                <button
-                  onClick={() =>
-                    setCurrentPage((page) => Math.max(page - 1, 1))
-                  }
-                  disabled={currentPage === 1}
+            <StatCard
+              label="Completed"
+              value={stats.completed}
+              accent="green"
+              onClick={() => handleStatCardClick('completed')}
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
                 >
-                  ←
-                </button>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 12l3 3 5-6" />
+                </svg>
+              }
+            />
 
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    className={currentPage === page ? 'active' : ''}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() =>
-                    setCurrentPage((page) =>
-                      Math.min(page + 1, totalPages)
-                    )
-                  }
-                  disabled={currentPage === totalPages}
+            <StatCard
+              label="In Progress"
+              value={stats.inProgress}
+              accent="amber"
+              onClick={() => handleStatCardClick('active')}
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
                 >
-                  →
-                </button>
-              </div>
-            )}
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              }
+            />
+
+            <StatCard
+              label="Overdue"
+              value={stats.overdue}
+              accent="red"
+              onClick={() => handleStatCardClick('overdue')}
+              icon={
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" />
+                  <path d="M12 9v4" />
+                  <path d="M12 16h.01" />
+                </svg>
+              }
+            />
           </div>
 
-          {/* RIGHT: CALENDAR + PROGRESS */}
-      
+          <div className="dashboard-content">
+            {/* LEFT: TASKS */}
+            <div className="dashboard-tasks">
+              <TaskList
+                tasks={paginatedTasks}
+                subtasksMap={subtasksMap}
+                subtasksLoadingMap={subtasksLoadingMap}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                expandedTaskId={expandedTaskId}
+                onToggleExpand={handleToggleExpand}
+                onToggleComplete={handleToggleComplete}
+                onToggleImportant={handleToggleImportant}
+                onEditTask={(task) => setEditingTask(task)}
+                onDeleteTask={(task) => setDeletingTask(task)}
+                onToggleSubtask={handleToggleSubtask}
+                onAddSubtask={handleAddSubtask}
+                onEditSubtask={handleEditSubtask}
+                onDeleteSubtask={handleDeleteSubtask}
+                onOpenAddModal={() => setIsAddModalOpen(true)}
+                onRetry={fetchTasks}
+                loading={loading}
+                error={error}
+              />
+
+              {totalPages > 1 && (
+                <div className="task-pagination">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(page - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    ←
+                  </button>
+
+                  {Array.from(
+                    { length: totalPages },
+                    (_, index) => index + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      className={currentPage === page ? 'active' : ''}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((page) =>
+                        Math.min(page + 1, totalPages)
+                      )
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT: CALENDAR */}
             <div className="dashboard-calendar">
               <CalendarCard tasks={tasks} />
             </div>
 
+            {/* RIGHT: PROGRESS */}
             <div className="dashboard-progress">
               <ProgressCard
                 completed={stats.completed}
@@ -595,8 +597,16 @@ useEffect(() => {
                 upcomingTasks={upcomingTasks}
               />
             </div>
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+
+      {activeNav === 'categories' && (
+        <Categories
+          tasks={tasks}
+          onBack={() => setActiveNav('dashboard')}
+        />
+      )}
 
       <AddTaskModal
         isOpen={isAddModalOpen}
@@ -614,13 +624,19 @@ useEffect(() => {
       <ConfirmModal
         isOpen={Boolean(deletingTask)}
         title="Delete Task"
-        message={`Are you sure you want to delete "${deletingTask?.taskname || deletingTask?.title || 'this task'}"?`}
+        message={`Are you sure you want to delete "${
+          deletingTask?.taskname ||
+          deletingTask?.title ||
+          'this task'
+        }"?`}
         confirmText="Delete Task"
         onConfirm={handleConfirmDeleteTask}
         onClose={() => setDeletingTask(null)}
       />
     </div>
-  )
+  </div>
+)
+
 }
 
 export default Dashboard
