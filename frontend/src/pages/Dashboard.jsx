@@ -6,6 +6,7 @@ import TaskList from '../components/TaskList'
 import ProgressCard from '../components/ProgressCard'
 import CalendarCard from '../components/CalendarCard'
 import Categories from '../components/Categories'
+import Calendar from './Calendar'
 import AddTaskModal from '../components/AddTaskModal'
 import EditTaskModal from '../components/EditTaskModal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -32,6 +33,7 @@ function Dashboard({ user, onLogout, darkMode, setDarkMode }){
   const TASKS_PER_PAGE = 5
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [calendarTaskDate, setCalendarTaskDate] = useState('')
   const [editingTask, setEditingTask] = useState(null)
   const [deletingTask, setDeletingTask] = useState(null)
   
@@ -252,23 +254,55 @@ useEffect(() => {
 
   // ── Toggle Complete ───────────────────────────────────────────────────────
   const handleToggleComplete = async (taskId) => {
-    const task = tasks.find((t) => t.id === taskId)
-    if (!task) return
-    const newCompleted = !task.completed
+  const task = tasks.find((t) => t.id === taskId)
+  if (!task) return
 
+  const newCompleted = !task.completed
+
+  // Update main task immediately
+  setTasks((prev) =>
+    prev.map((t) =>
+      t.id === taskId
+        ? { ...t, completed: newCompleted }
+        : t
+    )
+  )
+
+  // Update all subtasks immediately
+  setSubtasksMap((prev) => ({
+    ...prev,
+    [taskId]: (prev[taskId] || []).map((subtask) => ({
+      ...subtask,
+      completed: newCompleted,
+    })),
+  }))
+
+  try {
+    await api.patchTask(taskId, {
+      completed: newCompleted,
+    })
+  } catch (err) {
+    // Roll back main task
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: newCompleted } : t))
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, completed: !newCompleted }
+          : t
+      )
     )
 
-    try {
-      await api.patchTask(taskId, { completed: newCompleted })
-    } catch (err) {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, completed: !newCompleted } : t))
-      )
-      alert(err.message || 'Failed to update task status.')
-    }
+    // Roll back subtasks
+    setSubtasksMap((prev) => ({
+      ...prev,
+      [taskId]: (prev[taskId] || []).map((subtask) => ({
+        ...subtask,
+        completed: !newCompleted,
+      })),
+    }))
+
+    alert(err.message || 'Failed to update task status.')
   }
+}
 
   // ── Toggle Important (PATCH /tasks/:id) ──────────────────────────────────
   const handleToggleImportant = async (taskId, newImportant) => {
@@ -369,31 +403,62 @@ useEffect(() => {
     }
   }
 
-  const handleToggleSubtask = async (taskId, subtaskId) => {
-    const subtask = (subtasksMap[taskId] || []).find((s) => s.id === subtaskId)
-    if (!subtask) return
-    const newCompleted = !subtask.completed
+const handleToggleSubtask = async (taskId, subtaskId) => {
+  const subtask = (subtasksMap[taskId] || []).find(
+    (s) => s.id === subtaskId
+  )
 
+  if (!subtask) return
+
+  const newCompleted = !subtask.completed
+
+  // Update subtask immediately in the UI
+  setSubtasksMap((prev) => ({
+    ...prev,
+    [taskId]: prev[taskId].map((s) =>
+      s.id === subtaskId
+        ? { ...s, completed: newCompleted }
+        : s
+    ),
+  }))
+
+  try {
+    const response = await api.patchSubtask(
+      taskId,
+      subtaskId,
+      { completed: newCompleted }
+    )
+
+    console.log('PATCH SUBTASK RESPONSE:', response)
+
+    // Backend synchronized the main task
+    if (response?.mainTask) {
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === response.mainTask.id
+            ? {
+                ...task,
+                completed: response.mainTask.completed,
+              }
+            : task
+        )
+      )
+    }
+  } catch (err) {
+    // Roll back subtask if request fails
     setSubtasksMap((prev) => ({
       ...prev,
       [taskId]: prev[taskId].map((s) =>
-        s.id === subtaskId ? { ...s, completed: newCompleted } : s
+        s.id === subtaskId
+          ? { ...s, completed: !newCompleted }
+          : s
       ),
     }))
 
-    try {
-      await api.patchSubtask(taskId, subtaskId, { completed: newCompleted })
-    } catch (err) {
-      setSubtasksMap((prev) => ({
-        ...prev,
-        [taskId]: prev[taskId].map((s) =>
-          s.id === subtaskId ? { ...s, completed: !newCompleted } : s
-        ),
-      }))
-      alert(err.message || 'Failed to update subtask.')
-    }
+    alert(err.message || 'Failed to update subtask.')
   }
-
+}     
+       
   const handleEditSubtask = async (taskId, subtaskId, title) => {
     try {
       await api.patchSubtask(taskId, subtaskId, { title })
@@ -607,12 +672,33 @@ useEffect(() => {
           onBack={() => setActiveNav('dashboard')}
         />
       )}
+     
+     {activeNav === 'calendar' && (
+  <Calendar
+    tasks={tasks}
+    onAddTask={(date) => {
+      const localDate = new Date(date)
 
+      const formattedDate =
+        `${localDate.getFullYear()}-` +
+        `${String(localDate.getMonth() + 1).padStart(2, '0')}-` +
+        `${String(localDate.getDate()).padStart(2, '0')}T09:00`
+
+      setCalendarTaskDate(formattedDate)
+      setIsAddModalOpen(true)
+    }}
+  />
+)}
+
+       
       <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+      isOpen={isAddModalOpen}
+      onClose={() => {
+        setIsAddModalOpen(false)
+        setCalendarTaskDate('')}}
         onSubmit={handleAddTask}
-      />
+initialDueDate={calendarTaskDate}
+/>
 
       <EditTaskModal
         isOpen={Boolean(editingTask)}

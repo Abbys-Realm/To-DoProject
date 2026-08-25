@@ -1,6 +1,51 @@
 const {json}= require('express')
 const pool = require("../Config/db")
 
+//task and subtask synchronization
+const syncMainTask= async(task_id)=>{
+  const result = await pool.query(`SELECT COUNT(*)::int AS total, 
+  COUNT(*) FILTER (WHERE completed=true)::int AS completed
+  FROM subtasks
+  WHERE task_id=$1`,[task_id])
+
+const total= Number(result.rows[0].total)
+const completed= Number(result.rows[0].completed)
+
+console.log("SYNC MAIN TASK:", {
+        task_id,
+        total,
+        completed
+    });
+const completedTask= total > 0 && total === completed;
+
+ console.log("SETTING MAIN TASK:", {
+        completedTask,
+        task_id
+    });
+ const updated= await pool.query(`UPDATE tasks 
+    SET completed = $1
+    WHERE id = $2
+    RETURNING id,taskname, completed`,
+   [completedTask, task_id])
+
+   console.log("UPDATE ROW COUNT: ", updated.rowCount);
+   console.log("UPDATE RESULT: ", updated.rows)
+   console.log("MAIN TASK UPDATED:", updated.rows[0]);
+
+   return updated.rows[0]
+
+  }
+  
+
+//Complete the subtasks belonging to a task
+const completeSubtasks= async(task_id)=>{
+    await pool.query(
+        ` UPDATE subtasks
+        SET completed=true
+        WHERE task_id=$1`, [task_id]
+    )
+}
+
 
 const getSubtasks= async (req,res,next)=>{
     try{
@@ -44,9 +89,9 @@ const getSubtasks= async (req,res,next)=>{
         if(order !== undefined && order !=="asc" && order !== "desc"){
             return res.status(400).json({
                 success:false,
-                message:"Use asc or"
+                message:"Use asc or desc"
             })
-            const sortOrder= order ==="desc"? "DESC" :"ASC";
+     const sortOrder= order ==="desc"? "DESC" :"ASC";
 
             sortQuery=`ORDER BY ${sort} ${sortOrder}`;
         }
@@ -108,6 +153,11 @@ const addSubtask=async (req,res,next)=>{
         const result= await pool.query(`INSERT INTO subtasks (task_id,title,completed)
                                      VALUES($1,$2,$3) RETURNING *`,
                                     [task_id, title, completed ?? false])
+
+        //Confirming parent task completetion
+        await syncMainTask(task_id)
+
+
         res.status(201).json({
             success:true, 
             data:result.rows[0]
@@ -143,6 +193,9 @@ const updateSubtask= async (req,res, next)=>{
     const result= await pool.query(`UPDATE subtasks
         SET title=$1, completed=$2 WHERE id= $3 AND task_id=$4
     RETURNING *`,[title,completed,id,task_id])
+
+    //Confirming main task completion
+    const completedTask= await syncMainTask(task_id)
 
    res.status(200).json({
     success:true,
@@ -202,11 +255,16 @@ const patchSubtask= async (req,res,next)=>{
              RETURNING *`,
             value
         );
+     //Confirming task complete
 
+     console.log ("subtask updated: ", result.rows[0])
+     const completedTask= await syncMainTask(task_id);
+     
         res.status(200).json({
             success: true,
             message: "Subtask updated successfully",
-            data: result.rows[0]
+            data: result.rows[0],
+            mainTask: completedTask
         });
 
     } catch (error) {
@@ -222,7 +280,8 @@ const deleteSubtask= async (req,res)=>{
             `DELETE FROM subtasks WHERE id=$1 AND task_id=$2 RETURNING *`,
             [id,task_id]
         )
-
+      const completedTask= await syncMainTask(task_id)
+      
        res.status(200).json({
         success:true,
         data: result.rows[0]

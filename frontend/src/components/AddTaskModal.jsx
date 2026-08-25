@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './AddTaskModal.css'
 
 const emptyForm = {
@@ -11,8 +11,17 @@ const emptyForm = {
   frequency: 'none',
 }
 
-function AddTaskModal({ isOpen, onClose, onSubmit }) {
+function AddTaskModal({ isOpen, onClose, onSubmit, initialDueDate='',}) {
   const [form, setForm] = useState(emptyForm)
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        ...emptyForm,
+        due_date: initialDueDate || '',
+      })
+    }
+  }, [isOpen, initialDueDate])
 
   if (!isOpen) return null
 

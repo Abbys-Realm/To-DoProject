@@ -93,35 +93,6 @@ function Sidebar({
 
         {/* Bottom section */}
         <div className="sidebar-bottom">
-
-          {/* Settings */}
-          <button
-            type="button"
-            className={`nav-item settings-item ${
-              activeNav === 'settings' ? 'active' : ''
-            }`}
-            onClick={() => {
-              onNavChange('settings')
-              onClose()
-            }}
-          >
-            <span className="nav-icon">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="7" />
-                <circle cx="12" cy="12" r="2.5" />
-              </svg>
-            </span>
-
-            <span>Settings</span>
-          </button>
-
           {/* User profile */}
           <div className="sidebar-profile">
             <div className="profile-avatar" aria-hidden="true">

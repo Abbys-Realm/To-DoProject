@@ -273,12 +273,12 @@ export const api = {
     })
   },
 
-  async patchSubtask(taskId, subtaskId, fields = {}) {
-    return await request(`/tasks/${taskId}/subtasks/partial/${subtaskId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(fields),
-    })
-  },
+async patchSubtask(taskId, subtaskId, fields = {}) {
+  return await request(`/tasks/${taskId}/subtasks/partial/${subtaskId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(fields),
+  })
+},
 
   async deleteSubtask(taskId, subtaskId) {
     return await request(`/tasks/${taskId}/subtasks/delete/${subtaskId}`, { method: 'DELETE' })

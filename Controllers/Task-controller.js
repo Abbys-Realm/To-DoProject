@@ -25,6 +25,19 @@ function normalizeFrequency(val) {
   return VALID_FREQUENCIES.includes(normalized) ? normalized : null;
 }
 
+const syncSubtasks = async (task_id, completed) => {
+    const result = await pool.query(
+        `UPDATE subtasks
+         SET completed = $1
+         WHERE task_id = $2
+         RETURNING *`,
+        [completed, task_id]
+    );
+
+    console.log("SUBTASKS SYNCED:", result.rows);
+
+    return result.rows;
+}; 
 // GET /tasks
 const getall = async (req, res, next) => {
   try {
@@ -303,7 +316,19 @@ const updateTask = async (req, res, next) => {
        RETURNING *`,
       [taskname, category, completed, description, priority, dueDateValue, important, frequency, id, user_id]
     );
+    
+    if(completed=== true){
+      await pool.query(
+        `UPDATE subtasks 
+        SET completed= true
+        WHERE task_id=$1`,[id]
+      )
+    }
 
+
+    if (completed !== undefined) {
+    await syncSubtasks(id, completed);
+}
     res.status(200).json({ success: true, data: result.rows[0] });
   } catch (error) {
    next(error)
@@ -423,6 +448,15 @@ const patchTask = async (req, res, next) => {
     `;
 
     const result = await pool.query(query, values);
+
+    if (completed !== undefined) {
+  await pool.query(
+    `UPDATE subtasks
+     SET completed = $1
+     WHERE task_id = $2`,
+    [completed, id]
+  );
+}
 
     return res.status(200).json({
       success: true,
