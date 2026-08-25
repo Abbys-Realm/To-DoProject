@@ -92,7 +92,7 @@ const register= async (req,res)=>{
       })
     }
    //Check validity password
-    if(password.length<8 && password.length>12){
+    if(password.length<8 || password.length>12){
       return res.status(400).json({
          success:false,
          message:"password must be atleast 8 characters and at most 12"
@@ -123,6 +123,175 @@ const register= async (req,res)=>{
     })
    }
 }
+
+const getProfile = async (req,res)=>{
+   try{
+      const userID = req.user.id;
+
+      const result= await pool.query(
+         `SELECT id,username, email
+         FROM users
+         WHERE id = $1`,
+         [userID]
+      );
+
+      if(result.rows.length === 0){
+         return res.status(404).json({
+            success:false,
+            message: "User not found"
+         })
+      }
+      res.status(200).json({
+         success: true,
+         data: result.rows[0]
+      })
+   }
+
+   catch(error){
+      console.log(error);
+
+      res.status(500).json({
+         success: false,
+         message: "Server error"
+      })
+   }
+}
+
+const changePassword = async(req,res) =>{
+   try{
+      const userID= req.user.id;
+
+      const {currentPassword, newPassword}= req.body;
+
+      if(!currentPassword || !newPassword){
+         return res.status(400).json({
+            success:false,
+            message:"Current password and new password are required"
+         })
+      }
+
+      if(newPassword.length < 8 || newPassword.length>12){
+         return res.status(400).json({
+            success: false,
+            message:"Password must be atleast 8 and atmost 12 characters"
+         })
+      }
+    const result= await pool.query(`
+      SELECT userpassword
+      FROM users WHERE id= $1`, [userID])
+     if(result.rows.length === 0){
+      return res.status(404).json({
+         success:false,
+         message:"User not found"
+      })
+     }
+
+     const validPassword= await bcrypt.compare(currentPassword, result.rows[0].userpassword)
+     
+     if(!validPassword){
+      return res.status(401).json({
+         success:false,
+         message:"Password is incorrect"
+      })
+     }
+
+     const hashedPassword= await bcrypt.hash(newPassword,10)
+
+     await pool.query(`UPDATE users
+      SET userpassword = $1
+      WHERE id= $2`,[hashedPassword, userID])
+
+      res.status(200).json({
+         success:true,
+         message:"Password update successfully"
+      })
+   }
+   catch(error){
+      return res.status(500).json({
+         success:false,
+         message:"Sever error"
+      })
+   }
+}
+
+const changeEmail= async(req,res)=>{
+  try{
+     const userID = req.user.id;
+
+     const {newEmail, currentPassword}= req.body;
+
+           if(!newEmail || !currentPassword){
+         return res.status(401).json({
+            sucess: false,
+            message:"New email and current password is required"
+         })
+      }
+    const emailFormat= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if(!emailFormat.test(newEmail)){
+
+      return res.status(400).json({
+         success:false,
+         message:"Invalid email format"
+      })
+    }
+
+     const result= await pool.query(`
+      SELECT userpassword FROM users WHERE id =$1`,[userID])
+
+      if(result.rows.length === 0){
+         return res.status(404).json({
+            success:false,
+            message:"User not found"
+         })
+      }
+
+      const  validPassword= await bcrypt.compare(currentPassword, result.rows[0].userpassword)
+
+      if(!validPassword){
+         return res.status(401).json({
+            success:false,
+            message:"Password is incorrect"
+         })
+      }
+
+      const emailExist= await pool.query(
+         `SELECT id FROM users
+         WHERE email =$1
+         AND id != $2`, [newEmail,userID]
+      )
+
+      if(emailExist.rows.length > 0){
+         return res.status(400).json({
+            success:false,
+            message:"Email exist already"
+         })
+      }
+   const userResult=await pool.query(`
+      UPDATE users 
+      SET email= $1,
+      WHERE id= $2
+      RETURNING id,username,email`, [newEmail, userID])
+
+     res.status(200).json({
+      success: true,
+      message:"Email updated successfully",
+      data: userResult.rows[0]
+     })
+  }
+
+  catch(error){
+
+   console.log(error)
+
+   return res.status(500).json({
+      success:false,
+      message:"Server error"
+   })
+  }
+
+}
+
 //export the modules to be accessed in other files
 module.exports= {
-    register, login}
+    register, login, getProfile, changePassword,changeEmail}
