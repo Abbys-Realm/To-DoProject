@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Dashboard from './pages/Dashboard'
 import AuthModal from './components/AuthModal'
+import ProfileModal from './components/ProfileModal'
 import { getToken, getStoredUser, logout } from './services/api'
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
       avatarInitials: 'TF'
     }
   )
+  const [profileOpen, setProfileOpen] = useState(false)
 
   // ===== Dark mode =====
   const [darkMode, setDarkMode] = useState(() => {
@@ -59,12 +61,26 @@ function App() {
   }
 
   return (
+    <>
     <Dashboard
       user={user}
       onLogout={handleLogout}
       darkMode={darkMode}
       setDarkMode={setDarkMode}
+      onOpenProfile={() => setProfileOpen(true)}
     />
+
+    {profileOpen && (
+    <ProfileModal
+    user={user}
+    onClose={() => setProfileOpen(false)}
+    onLogout={handleLogout}
+    onUserUpdated={(updatedUser) => {
+      setUser(updatedUser)
+    }}
+  />
+   )}
+   </>
   )
 }
 

@@ -49,7 +49,6 @@ export function logout() {
   removeStoredUser()
   window.dispatchEvent(new Event('taskflow:logout'))
 }
-
 // ─── Core fetch helper ───────────────────────────────────────────────────────
 
 async function request(endpoint, options = {}) {
@@ -131,6 +130,50 @@ export const api = {
       body: JSON.stringify({ username, email, password }),
     })
   },
+    async getProfile() {
+    return await request('/auth/profile', {
+      method: 'GET',
+    })
+  },
+  async checkUsername(username) {
+  const query = new URLSearchParams({
+    username: username.trim(),
+  })
+
+  return await request(`/auth/checkUsername?${query.toString()}`, {
+    method: 'GET',
+  })
+},
+
+async updateUsername(username) {
+  return await request('/auth/username', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      username: username.trim(),
+    }),
+  })
+},
+
+async changePassword(currentPassword, newPassword) {
+    return await request('/auth/password', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+      }),
+    })
+  },
+
+  async changeEmail(newEmail, currentPassword) {
+    return await request('/auth/email', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        newEmail,
+        currentPassword,
+      }),
+    })
+  },
+ 
 
   // ── Tasks ─────────────────────────────────────────────────────────────────
 

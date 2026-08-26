@@ -47,8 +47,7 @@ const login= async (req,res)=>{
       }
    )
    //displaying user's token and success message when they login:
-           console.log(req.user);
-   res.status(200)
+    res.status(200)
    .json({success:true, message:"login successful",
          JWTtoken
    })
@@ -209,10 +208,11 @@ const changePassword = async(req,res) =>{
    catch(error){
       return res.status(500).json({
          success:false,
-         message:"Sever error"
+         message:"server error"
       })
-   }
+      }
 }
+
 
 const changeEmail= async(req,res)=>{
   try{
@@ -222,11 +222,11 @@ const changeEmail= async(req,res)=>{
 
            if(!newEmail || !currentPassword){
          return res.status(401).json({
-            sucess: false,
+            success: false,
             message:"New email and current password is required"
          })
       }
-    const emailFormat= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if(!emailFormat.test(newEmail)){
 
@@ -258,8 +258,8 @@ const changeEmail= async(req,res)=>{
       const emailExist= await pool.query(
          `SELECT id FROM users
          WHERE email =$1
-         AND id != $2`, [newEmail,userID]
-      )
+         AND id != $2`, [newEmail,userID])
+      
 
       if(emailExist.rows.length > 0){
          return res.status(400).json({
@@ -269,7 +269,7 @@ const changeEmail= async(req,res)=>{
       }
    const userResult=await pool.query(`
       UPDATE users 
-      SET email= $1,
+      SET email= $1
       WHERE id= $2
       RETURNING id,username,email`, [newEmail, userID])
 
@@ -292,6 +292,95 @@ const changeEmail= async(req,res)=>{
 
 }
 
+const checkUser = async (req,res)=>{
+   try{
+    const {username} = req.query;
+
+    if(!username || ! username.trim()){
+    return res.status(400).json({
+    success:false,
+    message: "Username is required"
+    })}
+   
+    const result= await pool.query (
+      `SELECT id 
+      FROM users WHERE
+      LOWER(username)= LOWER($1) 
+      LIMIT 1`, [username.trim()])
+
+     res.status(200).json({
+      success:true,
+      available: result.rows.length === 0
+     }) 
+
+
+   } catch(error){
+      console.error("Check username error: ", error);
+
+      res.status(500).json({
+         success:false,
+         message:"Server Error"
+
+      })
+   }
+}
+
+const updateUsername= async (req,res)=>{
+   try{
+      const {username}= req.body
+      const userID= req.user.id;
+
+      if(!username || !username.trim()){
+         return res.status(400).json({
+            success:false,
+            message:"Username is required"
+         })
+      }
+
+      const newUser= username.trim()
+
+      const userExist= await pool.query(`
+         SELECT id 
+         FROM users
+         WHERE LOWER(username) = LOWER($1)
+         AND id != $2
+         LIMIT 1`, [newUser, userID])
+      
+      if(userExist.rows.length > 0){
+         return res.status(409).json({
+            success:false,
+            message:"Username is already taken"
+         })
+      } 
+      const result= await pool.query(
+         `UPDATE users
+         SET username=$1
+         WHERE id=$2
+         RETURNING id, username,email`,
+         [newUser, userID]
+      )
+
+      if(result.rows.length === 0){
+        return res.status(404).json({
+         success:false,
+         message:"user not found"
+        })
+      }
+
+      res.status(200).json({
+         success:true,
+         message:"Username updated successfully",
+         data: result.rows[0]
+      })
+   }catch(error){
+      console.log("Update username error: ", error)
+
+      res.status(500).json({
+         success:false,
+         message:"Server error"
+      })
+   }
+}
 //export the modules to be accessed in other files
 module.exports= {
-    register, login, getProfile, changePassword,changeEmail}
+    register, login, getProfile, changePassword, changeEmail, checkUser, updateUsername}

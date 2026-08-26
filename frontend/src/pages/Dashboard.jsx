@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import StatCard from '../components/StatCard'
 import TaskList from '../components/TaskList'
+import ProfileModal from '../components/ProfileModal'
 import ProgressCard from '../components/ProgressCard'
 import CalendarCard from '../components/CalendarCard'
 import Categories from '../components/Categories'
@@ -16,7 +17,8 @@ import './Dashboard.css'
 // ── Priority sort order (high first) ─────────────────────────────────────────
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 }
 
-function Dashboard({ user, onLogout, darkMode, setDarkMode }){
+function Dashboard({ user, onLogout, darkMode, setDarkMode, onOpenProfile }){
+  const [currentUser,setCurrentUser] = useState(user) 
   const [tasks, setTasks] = useState([])
   const [subtasksMap, setSubtasksMap] = useState({})
   const [subtasksLoadingMap, setSubtasksLoadingMap] = useState({})
@@ -31,7 +33,7 @@ function Dashboard({ user, onLogout, darkMode, setDarkMode }){
   const [expandedTaskId, setExpandedTaskId] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const TASKS_PER_PAGE = 5
-
+  const [profileOpen, setProfileOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [calendarTaskDate, setCalendarTaskDate] = useState('')
   const [editingTask, setEditingTask] = useState(null)
@@ -490,17 +492,19 @@ const handleToggleSubtask = async (taskId, subtaskId) => {
     return (
   <div className="dashboard-layout">
     <Sidebar
-      user={user}
+      user={currentUser}
       activeNav={activeNav}
       onNavChange={setActiveNav}
       isOpen={sidebarOpen}
       onClose={() => setSidebarOpen(false)}
       onLogout={onLogout}
+      onOpenProfile={onOpenProfile}
     />
 
     <div className="dashboard-main">
       <Header
-        user={user}
+        user={currentUser}
+        onOpenProfile={()=> setProfileOpen(true)}
         searchQuery={headerSearch}
         onSearchChange={setHeaderSearch}
         onMenuClick={() => setSidebarOpen(true)}
@@ -719,6 +723,13 @@ initialDueDate={calendarTaskDate}
         onConfirm={handleConfirmDeleteTask}
         onClose={() => setDeletingTask(null)}
       />
+      <ProfileModal
+  isOpen={profileOpen}
+  user={currentUser}
+  onClose={() => setProfileOpen(false)}
+  onLogout={onLogout}
+  onUserUpdated={setCurrentUser}
+/>
     </div>
   </div>
 )

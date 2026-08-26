@@ -5,7 +5,12 @@ const navItems = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <rect x="3" y="3" width="7" height="9" rx="1.5" />
         <rect x="14" y="3" width="7" height="5" rx="1.5" />
         <rect x="14" y="12" width="7" height="9" rx="1.5" />
@@ -17,7 +22,12 @@ const navItems = [
     id: 'categories',
     label: 'Categories',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M20 13l-7 7-9-9V4h7l9 9z" />
         <circle cx="7.5" cy="7.5" r="1.2" />
       </svg>
@@ -27,7 +37,12 @@ const navItems = [
     id: 'calendar',
     label: 'Calendar',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <rect x="3" y="4" width="18" height="17" rx="2" />
         <path d="M16 2v4M8 2v4M3 10h18" />
         <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
@@ -37,7 +52,6 @@ const navItems = [
 ]
 
 function Sidebar({
-  user,
   activeNav,
   onNavChange,
   isOpen,
@@ -85,7 +99,10 @@ function Sidebar({
                 onClose()
               }}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon">
+                {item.icon}
+              </span>
+
               <span>{item.label}</span>
             </button>
           ))}
@@ -93,43 +110,27 @@ function Sidebar({
 
         {/* Bottom section */}
         <div className="sidebar-bottom">
-          {/* User profile */}
-          <div className="sidebar-profile">
-            <div className="profile-avatar" aria-hidden="true">
-              {user?.avatarInitials || 'TF'}
-            </div>
-
-            <div className="profile-info">
-              <p className="profile-name">
-                {user?.name || 'User'}
-              </p>
-
-              <p className="profile-email">
-                {user?.email || ''}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="btn-icon profile-logout-btn"
-              title="Sign Out"
-              onClick={onLogout}
-              aria-label="Sign Out"
+          <button
+            type="button"
+            className="sidebar-logout"
+            onClick={onLogout}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <path d="M16 17l5-5-5-5" />
-                <path d="M21 12H9" />
-              </svg>
-            </button>
-          </div>
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
 
+            <span>Log out</span>
+          </button>
         </div>
+
       </aside>
     </>
   )
