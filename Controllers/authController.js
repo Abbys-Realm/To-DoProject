@@ -53,12 +53,13 @@ const login= async (req,res)=>{
    })
    
 } 
-   catch(error){
-       res.status(500).json({
-        success:false,
-        message:"server error"
-    })
-   }
+   catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+}
 }
 
 //user register
