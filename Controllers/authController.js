@@ -65,21 +65,40 @@ const login= async (req,res)=>{
 const register= async (req,res)=>{
     try{
     //requirement for new user registeration
-    const {username, email, password}= req.body
+    const { username, email, password } = req.body
+
+const cleanUsername = username?.trim()
+const cleanEmail = email?.trim().toLowerCase()
    //ensure each requirement is included
-    if(!username||!email||!password){
+    if(!cleanUsername||!cleanEmail||!password){
         return res.status(400).json({success:false, message:"Every field is required"})
     }
-    //A query that matches the provided email to the db and check if user exist
-    const UserExist= await pool.query(`SELECT id FROM users WHERE email= $1`,[email]);
-   
-    //if the query return any rows it means the user exist already
-    if(UserExist.rows.length>0){
-      return res.status(400).json({
-         success:false,
-         message:'Email already exists'
-      })
-    }
+    const UserExist = await pool.query(
+  `SELECT id, email, username
+   FROM users
+   WHERE LOWER(email) = LOWER($1)
+      OR LOWER(username) = LOWER($2)
+   LIMIT 1`,
+  [cleanEmail, cleanUsername]
+)
+
+if (UserExist.rows.length > 0) {
+  const existingUser = UserExist.rows[0]
+
+  if (existingUser.email.toLowerCase() === email.trim().toLowerCase()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email already exists'
+    })
+  }
+
+  if (existingUser.username.toLowerCase() === username.trim().toLowerCase()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Username already exists'
+    })
+  }
+}
      //A variable to check a valid format for an email
     const emailFormat= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    //Checking Validity
@@ -102,7 +121,7 @@ const register= async (req,res)=>{
         const result= await pool.query(`INSERT INTO users
             (username,email,userpassword)
             values($1,$2,$3) RETURNING *`,
-        [username,email,hashedpassword])
+        [cleanUsername,cleanEmail,hashedpassword])
     //save the registered user and return its username and email
      res.status(201).json({
     success: true,
@@ -114,8 +133,10 @@ const register= async (req,res)=>{
 });
 }
    catch(error){
+      console.log("Register error: ", error)
      
     res.status(500).json({
+
         success:false,
         message:"server error"
     })

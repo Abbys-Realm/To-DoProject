@@ -113,16 +113,20 @@ async function request(endpoint, options = {}) {
 
 export const api = {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  async login({ email, password }) {
-    const res = await request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    })
-    if (res.JWTtoken) {
-      setToken(res.JWTtoken)
-    }
-    return res
-  },
+async login({ email, password }) {
+  const res = await request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+
+  console.log('LOGIN RESPONSE:', res)
+
+  if (res.JWTtoken) {
+    setToken(res.JWTtoken)
+  }
+
+  return res
+},
 
   async register({ username, email, password }) {
     return await request('/auth/register', {

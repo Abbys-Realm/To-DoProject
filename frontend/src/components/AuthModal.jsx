@@ -27,56 +27,73 @@ function AuthModal({ onAuthSuccess }) {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError(null)
-    setSuccessMessage(null)
-    setLoading(true)
+  e.preventDefault()
 
-    try {
-      if (mode === 'register') {
-        const registerRes = await api.register({
-          username: form.username.trim(),
-          email: form.email.trim(),
-          password: form.password,
-        })
+  setError(null)
+  setSuccessMessage(null)
+  setLoading(true)
 
-        setSuccessMessage(registerRes.message || 'Account created successfully! Logging you in...')
+  try {
+    if (mode === 'register') {
+      const registerRes = await api.register({
+        username: form.username.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      })
 
-        // Automatically log in after registration
-        await api.login({
-          email: form.email.trim(),
-          password: form.password,
-        })
+      setSuccessMessage(
+        registerRes.message || 'Account created successfully! Please sign in.'
+      )
 
-        const userObj = {
-          name: form.username.trim(),
-          email: form.email.trim(),
-          avatarInitials: form.username.slice(0, 2).toUpperCase() || 'TF',
-        }
-        setStoredUser(userObj)
-        onAuthSuccess(userObj)
-      } else {
-        await api.login({
-          email: form.email.trim(),
-          password: form.password,
-        })
+      setForm({
+        username: '',
+        email: form.email.trim(),
+        password: '',
+      })
 
-        // Generate user display data from email
-        const derivedName = form.email.split('@')[0]
-        const userObj = {
-          name: derivedName.charAt(0).toUpperCase() + derivedName.slice(1),
-          email: form.email.trim(),
-          avatarInitials: derivedName.slice(0, 2).toUpperCase() || 'TF',
-        }
-        setStoredUser(userObj)
-        onAuthSuccess(userObj)
+      setMode('login')
+
+    } else {
+      console.log('LOGIN STARTED')
+
+      const loginRes = await api.login({
+        email: form.email.trim(),
+        password: form.password,
+      })
+
+      console.log('LOGIN RESULT:', loginRes)
+
+      if (!loginRes?.JWTtoken) {
+        throw new Error('Login succeeded but no authentication token was received.')
       }
-    } catch (err) {
-      setError(err.message || 'Authentication failed. Please try again.')
-    } finally {
-      setLoading(false)
+
+      const derivedName = form.email.split('@')[0]
+
+      const userObj = {
+        name:
+          derivedName.charAt(0).toUpperCase() +
+          derivedName.slice(1),
+        email: form.email.trim(),
+        avatarInitials:
+          derivedName.slice(0, 2).toUpperCase() || 'TF',
+      }
+
+      setStoredUser(userObj)
+
+      console.log('LOGIN SUCCESS - OPENING DASHBOARD')
+
+      onAuthSuccess(userObj)
     }
+  } catch (err) {
+    console.error('AUTH ERROR:', err)
+
+    setError(
+      err.message || 'Authentication failed. Please try again.'
+    )
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="auth-container">
