@@ -12,6 +12,7 @@ const cors = require('cors');
 
 const app= express()
 const http = require('http');
+const PORT= process.env.PORT || 8080;
 
 //Middlewares
 app.use(cors());
@@ -36,6 +37,6 @@ app.use((req,res)=>{
 app.use(errorHandle);
 
 //server running
-app.listen(8080,()=>{
-    console.log('server is listening on port 8080')
+app.listen(PORT,()=>{
+    console.log(`server is running on port ${PORT}`)
 })
