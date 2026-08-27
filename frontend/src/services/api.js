@@ -4,7 +4,7 @@
  * Token is stored under 'taskflow_token'.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const API_URL = import.meta.env.VITE_API_URL || 'https://to-doproject.onrender.com/'
 export const TOKEN_KEY = 'taskflow_token'
 export const USER_KEY = 'taskflow_user'
 
