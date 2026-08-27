@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../services/api'
 import './ProfileModal.css'
 
-function ProfileModal({ isOpen, user, onClose, onLogout, onUserUpdated }) {
+function ProfileModal({ isOpen, user, onClose, onLogout, onUserUpdated,darkMode }) {
   const [profile, setProfile] = useState(user)
   const [view, setView] = useState('profile')
   
@@ -100,11 +100,16 @@ const handleUsernameChange = async (e) => {
 
   const username = newUsername.trim()
 
+  
+
   if (!username) {
     setError('Username cannot be empty.')
     return
   }
 
+   if(username.length < 5 || username.lengthh>12){
+    setError('Username must be between 5 and 12 chara')
+  }
   if (username === profile?.username) {
     setError('This is already your username.')
     return
@@ -116,17 +121,13 @@ const handleUsernameChange = async (e) => {
   try {
     const check = await api.checkUsername(username)
 
-    console.log('USERNAME CHECK:', check)
-
-    if (!check?.available) {
+     if (!check?.available) {
       setUsernameStatus('taken')
       setError('Username is already taken.')
       return
     }
 
     const res = await api.updateUsername(username)
-
-console.log('USERNAME UPDATE:', res)
 
 const updatedUser = {
   ...res.data,
@@ -146,7 +147,6 @@ setTimeout(() => {
   setMessage('')
 }, 3000)
   } catch (err) {
-    console.error('USERNAME ERROR:', err)
     setError(err.message || 'Failed to update username.')
   } finally {
     setCheckingUsername(false)
@@ -204,7 +204,7 @@ setTimeout(() => {
   return (
     <div className="profile-modal-overlay" onClick={onClose}>
       <div
-        className="profile-modal"
+        className={`profile-modal ${darkMode ? 'dark' : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -352,6 +352,8 @@ setTimeout(() => {
       <input
         type="text"
         value={newUsername}
+        minLength={5}
+        maxLength={11}
         onChange={(e) => {
           setNewUsername(e.target.value)
           setUsernameStatus('')

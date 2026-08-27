@@ -36,8 +36,7 @@ const authMiddleware= (req,res,next)=>{
      req.user= decoded;
  next();}
  catch(error){
-    //console.log("JWT error: ", token)
-   return res.status(401).json({
+    return res.status(401).json({
     success:false,
     message:"invalid token"
    })

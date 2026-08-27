@@ -54,8 +54,7 @@ const login= async (req,res)=>{
    
 } 
    catch(error){
-    console.log(error);
-    res.status(500).json({
+       res.status(500).json({
         success:false,
         message:"server error"
     })
@@ -115,7 +114,7 @@ const register= async (req,res)=>{
 });
 }
    catch(error){
-    console.log(error);
+     
     res.status(500).json({
         success:false,
         message:"server error"
@@ -147,8 +146,6 @@ const getProfile = async (req,res)=>{
    }
 
    catch(error){
-      console.log(error);
-
       res.status(500).json({
          success: false,
          message: "Server error"
@@ -281,9 +278,6 @@ const changeEmail= async(req,res)=>{
   }
 
   catch(error){
-
-   console.log(error)
-
    return res.status(500).json({
       success:false,
       message:"Server error"
@@ -313,11 +307,8 @@ const checkUser = async (req,res)=>{
       available: result.rows.length === 0
      }) 
 
-
    } catch(error){
-      console.error("Check username error: ", error);
-
-      res.status(500).json({
+         res.status(500).json({
          success:false,
          message:"Server Error"
 
@@ -373,8 +364,6 @@ const updateUsername= async (req,res)=>{
          data: result.rows[0]
       })
    }catch(error){
-      console.log("Update username error: ", error)
-
       res.status(500).json({
          success:false,
          message:"Server error"

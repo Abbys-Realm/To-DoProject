@@ -25,8 +25,7 @@ app.use('/tasks/:taskID/subtasks',subtaskRoute)
 
 //Home Route
 app.get('/',(req,res)=>{
-    console.log('user clicked the server')
-    res.status(200).send('home page')
+     res.status(200).send('home page')
 })
 
 //404

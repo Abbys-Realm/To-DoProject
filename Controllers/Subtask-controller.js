@@ -11,28 +11,14 @@ const syncMainTask= async(task_id)=>{
 const total= Number(result.rows[0].total)
 const completed= Number(result.rows[0].completed)
 
-console.log("SYNC MAIN TASK:", {
-        task_id,
-        total,
-        completed
-    });
 const completedTask= total > 0 && total === completed;
-
- console.log("SETTING MAIN TASK:", {
-        completedTask,
-        task_id
-    });
  const updated= await pool.query(`UPDATE tasks 
     SET completed = $1
     WHERE id = $2
     RETURNING id,taskname, completed`,
    [completedTask, task_id])
 
-   console.log("UPDATE ROW COUNT: ", updated.rowCount);
-   console.log("UPDATE RESULT: ", updated.rows)
-   console.log("MAIN TASK UPDATED:", updated.rows[0]);
-
-   return updated.rows[0]
+  return updated.rows[0]
 
   }
   
@@ -256,8 +242,6 @@ const patchSubtask= async (req,res,next)=>{
             value
         );
      //Confirming task complete
-
-     console.log ("subtask updated: ", result.rows[0])
      const completedTask= await syncMainTask(task_id);
      
         res.status(200).json({

@@ -13,10 +13,5 @@ const pool = new Pool({
 //else display the error
 pool.connect().then(()=>console.log("connected"))
 .catch(err=>console.log(err));
-console.log("DB_USER exists:", !!process.env.DB_USER);
-console.log("DB_HOST exists:", !!process.env.DB_HOST);
-console.log("DB_NAME exists:", !!process.env.DB_NAME);
-console.log("DB_PASSWORD exists:", !!process.env.DB_PASSWORD);
-console.log("DB_PORT exists:", !!process.env.DB_PORT);
 
 module.exports= pool;

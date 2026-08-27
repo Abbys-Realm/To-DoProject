@@ -33,9 +33,6 @@ const syncSubtasks = async (task_id, completed) => {
          RETURNING *`,
         [completed, task_id]
     );
-
-    console.log("SUBTASKS SYNCED:", result.rows);
-
     return result.rows;
 }; 
 // GET /tasks
@@ -423,7 +420,14 @@ const patchTask = async (req, res, next) => {
     if (category !== undefined)    
       { fields.push(`category=$${values.length + 1}`);    values.push(category); }
     if (completed !== undefined)   
-      { fields.push(`completed=$${values.length + 1}`);   values.push(completed); }
+      { fields.push(`completed=$${values.length + 1}`);  
+        values.push(completed)
+             if (completed === true) {
+       fields.push(`completed_at=NOW()`)
+        } else {
+       fields.push(`completed_at=NULL`)
+        }
+        } 
     if (description !== undefined) 
       { fields.push(`description=$${values.length + 1}`); values.push(description); }
     if (priorityVal !== undefined) 
@@ -446,8 +450,8 @@ const patchTask = async (req, res, next) => {
       WHERE id=$${IDplace} AND user_id=$${UIDplace}
       RETURNING *
     `;
-
-    const result = await pool.query(query, values);
+    
+   const result = await pool.query(query, values);
 
     if (completed !== undefined) {
   await pool.query(

@@ -241,6 +241,161 @@
   height: 14px;
 }
 
+/* =========================================================
+   TASKFLOW BRAND
+   ========================================================= */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 26px 24px 38px;
+}
+
+/* Logo container */
+.brand-mark {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   NOTEBOOK
+   ========================================================= */
+
+.notebook {
+  position: absolute;
+  left: 7px;
+  top: 3px;
+
+  width: 35px;
+  height: 43px;
+
+  background: linear-gradient(
+    145deg,
+    #f3e8ff 0%,
+    #c4b5fd 45%,
+    #8b5cf6 100%
+  );
+
+  border-radius: 7px;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  box-shadow:
+    3px 4px 0 #6d28d9,
+    0 6px 14px rgba(124, 58, 237, 0.35);
+}
+
+/* Notebook right-side thickness */
+.notebook::after {
+  content: '';
+  position: absolute;
+
+  right: -5px;
+  top: 3px;
+
+  width: 5px;
+  height: 36px;
+
+  background: #7c3aed;
+  border-radius: 0 5px 5px 0;
+}
+
+/* =========================================================
+   NOTEBOOK LINES
+   ========================================================= */
+
+.notebook-line {
+  display: block;
+
+  width: 21px;
+  height: 3px;
+
+  margin: 9px auto 0;
+
+  background: #6d5acb;
+
+  border-radius: 4px;
+
+  opacity: 0.9;
+}
+
+/* =========================================================
+   NOTEBOOK RINGS
+   ========================================================= */
+
+.notebook::before {
+  content: '•••';
+
+  position: absolute;
+
+  left: -7px;
+  top: 8px;
+
+  color: #a78bfa;
+
+  font-size: 18px;
+  font-weight: 900;
+
+  letter-spacing: 4px;
+
+  line-height: 9px;
+}
+
+/* =========================================================
+   CHECK BADGE
+   ========================================================= */
+
+.brand-check {
+  position: absolute;
+
+  right: -5px;
+  bottom: -4px;
+
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6d28d9
+  );
+
+  color: #ffffff;
+
+  border: 2px solid #0f172a;
+
+  border-radius: 50%;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  box-shadow:
+    0 4px 12px rgba(124, 58, 237, 0.5);
+}
+
+/* =========================================================
+   TASKFLOW TEXT
+   ========================================================= */
+
+.brand-name {
+  font-size: 24px;
+  font-weight: 750;
+
+  letter-spacing: -0.8px;
+
+  color: #ffffff;
+
+  line-height: 1;
+}
 
 /* Mobile: hide sidebar off-canvas */
 @media (max-width: 900px) {

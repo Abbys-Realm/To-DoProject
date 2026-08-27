@@ -68,22 +68,24 @@ function Sidebar({
       />
 
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+{/* Brand */}
+<div className="sidebar-brand">
+  <div className="brand-mark" aria-hidden="true">
+    <div className="notebook">
+      <span className="notebook-line" />
+      <span className="notebook-line" />
+      <span className="notebook-line" />
+    </div>
 
-        {/* Brand */}
-        <div className="sidebar-brand">
-          <div className="brand-mark" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-            >
-              <path d="M5 12l5 5L20 7" />
-            </svg>
-          </div>
+    <div className="brand-check">
+      ✓
+    </div>
+  </div>
 
-          <span className="brand-name">TaskFlow</span>
-        </div>
+  <span className="brand-name">
+    TaskFlow
+  </span>
+</div>
 
         {/* Main navigation */}
         <nav className="sidebar-nav" aria-label="Main">

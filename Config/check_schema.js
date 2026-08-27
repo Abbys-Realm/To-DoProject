@@ -8,12 +8,9 @@ async function run() {
       WHERE table_name = 'tasks'
       ORDER BY ordinal_position;
     `);
-    console.log('--- TASKS TABLE COLUMNS ---');
-    for (const row of res.rows) {
-      console.log(`${row.column_name} | ${row.data_type} | default: ${row.column_default} | nullable: ${row.is_nullable}`);
-    }
-  } catch (err) {
-    console.error('Check error:', err.message);
+   
+      } catch (err) {
+    .error('Check error:', err.message);
   } finally {
     await pool.end();
   }

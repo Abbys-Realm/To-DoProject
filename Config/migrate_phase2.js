@@ -20,7 +20,6 @@ async function migrate() {
     `);
 
     if (check.rows.length > 0) {
-      console.log('Column "important" already exists — nothing to do.');
       return;
     }
 
@@ -30,8 +29,7 @@ async function migrate() {
       ADD COLUMN important BOOLEAN NOT NULL DEFAULT false;
     `);
 
-    console.log('Migration complete: added "important BOOLEAN NOT NULL DEFAULT false" to tasks.');
-  } catch (err) {
+     } catch (err) {
     console.error('Migration failed:', err.message);
     process.exit(1);
   } finally {
