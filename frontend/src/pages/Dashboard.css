@@ -49,11 +49,6 @@
   min-width: 0;
 }
 
-.dashboard-calendar,
-.dashboard-progress {
-  min-width: 0;
-}
-
 /* Pagination */
 .task-pagination {
   display: flex;

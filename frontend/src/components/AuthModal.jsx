@@ -54,15 +54,11 @@ function AuthModal({ onAuthSuccess }) {
       setMode('login')
 
     } else {
-      console.log('LOGIN STARTED')
 
       const loginRes = await api.login({
         email: form.email.trim(),
         password: form.password,
       })
-
-      console.log('LOGIN RESULT:', loginRes)
-
       if (!loginRes?.JWTtoken) {
         throw new Error('Login succeeded but no authentication token was received.')
       }
@@ -79,9 +75,7 @@ function AuthModal({ onAuthSuccess }) {
       }
 
       setStoredUser(userObj)
-
-      console.log('LOGIN SUCCESS - OPENING DASHBOARD')
-
+ 
       onAuthSuccess(userObj)
     }
   } catch (err) {

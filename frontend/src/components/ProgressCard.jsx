@@ -2,8 +2,7 @@ import './ProgressCard.css'
 
 function ProgressCard({ completed, remaining, total, upcomingTasks = [] }) {
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100)
-
-  // SVG circle progress (no chart library needed)
+  
   const size = 120
   const stroke = 10
   const radius = (size - stroke) / 2

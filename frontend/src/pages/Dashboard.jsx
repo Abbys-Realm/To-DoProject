@@ -56,10 +56,8 @@ function Dashboard({
   const [editingTask, setEditingTask] = useState(null)
   const [deletingTask, setDeletingTask] = useState(null)
 
-  // =========================================================
+    
   // FETCH TASKS
-  // =========================================================
-
   const fetchTasks = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -87,11 +85,9 @@ function Dashboard({
   return () => clearInterval(timer)
 }, [])
 
-  // =========================================================
-  // FETCH SUBTASKS
-  // =========================================================
-
-  const fetchSubtasks = useCallback(async (taskId) => {
+  
+  // FETCH SUBTASKs
+const fetchSubtasks = useCallback(async (taskId) => {
     setSubtasksLoadingMap((prev) => ({
       ...prev,
       [taskId]: true,
@@ -117,29 +113,11 @@ function Dashboard({
     }
   }, [])
 
-  // =========================================================
-  // DASHBOARD TASKS
-  //
-  // Dashboard is temporary.
-  //
-  // Completed:
-  //   visible for 2 days after completed_at
-  //
-  // Incomplete:
-  //   visible for 2 days after created_at
-  //
-  // IMPORTANT:
-  // Calendar/Categories still use `tasks`, not this list.
-  // =========================================================
-
  const dashboardTasks = useMemo(() => {
   const RETENTION_TIME = 2* 24 * 60 * 60 * 1000 // 10 seconds for testing
 
   return tasks.filter((task) => {
-    // =====================================================
     // COMPLETED TASK
-    // =====================================================
-
     if (task.completed) {
       // If completed_at is missing, keep it visible
       if (!task.completed_at) {
@@ -159,9 +137,9 @@ function Dashboard({
       return currentTime - completedAt < RETENTION_TIME
     }
 
-    // =====================================================
+    
     // INCOMPLETE TASK
-    // =====================================================
+    
 
     if (task.created_at) {
       const createdAt = new Date(
@@ -181,13 +159,13 @@ function Dashboard({
     return true
   })
 }, [tasks, currentTime])
-  // =========================================================
+   
   // STATS
   //
   // Stats are based on ALL tasks.
   // This means disappearing from Dashboard does NOT delete
   // the task from statistics/calendar.
-  // =========================================================
+  
 
   const stats = useMemo(() => {
     const total = tasks.length
@@ -231,11 +209,8 @@ function Dashboard({
     }
   }, [tasks])
 
-  // =========================================================
   // VISIBLE DASHBOARD TASKS
-  // =========================================================
-
-  const visibleTasks = useMemo(() => {
+   const visibleTasks = useMemo(() => {
     // IMPORTANT:
     // Start from dashboardTasks, NOT tasks.
     let result = [...dashboardTasks]
@@ -372,11 +347,7 @@ function Dashboard({
     headerSearch,
     sortBy,
   ])
-
-  // =========================================================
   // PAGINATION
-  // =========================================================
-
   const totalPages = Math.ceil(
     visibleTasks.length / TASKS_PER_PAGE
   )
@@ -409,11 +380,8 @@ function Dashboard({
       setCurrentPage(totalPages)
     }
   }, [currentPage, totalPages])
-
-  // =========================================================
-  // UPCOMING TASKS
-  // =========================================================
-
+   // UPCOMING TASKS
+ 
   const upcomingTasks = useMemo(() => {
     return tasks
       .filter(
@@ -421,14 +389,15 @@ function Dashboard({
           !task.completed &&
           task.status !== 'completed'
       )
-      .slice(0, 4)
-  }, [tasks])
-
-  // =========================================================
+      .sort(
+      (a, b) =>
+        new Date(a.due_date) -
+        new Date(b.due_date)
+    )
+    .slice(0, 4)
+}, [tasks])
   // TOGGLE EXPAND
-  // =========================================================
-
-  const handleToggleExpand = (taskId) => {
+   const handleToggleExpand = (taskId) => {
     if (expandedTaskId === taskId) {
       setExpandedTaskId(null)
       return
@@ -441,10 +410,7 @@ function Dashboard({
     }
   }
 
-  // =========================================================
   // TOGGLE MAIN TASK COMPLETE
-  // =========================================================
-
   const handleToggleComplete = async (taskId) => {
     const task = tasks.find(
       (item) => item.id === taskId
@@ -538,10 +504,7 @@ function Dashboard({
     }
   }
 
-  // =========================================================
   // TOGGLE IMPORTANT
-  // =========================================================
-
   const handleToggleImportant = async (
     taskId,
     newImportant
@@ -601,10 +564,8 @@ function Dashboard({
     }
   }
 
-  // =========================================================
+   
   // CREATE TASK
-  // =========================================================
-
   const handleAddTask = async (formData) => {
     try {
       const response =
@@ -638,10 +599,7 @@ function Dashboard({
     }
   }
 
-  // =========================================================
-  // UPDATE TASK
-  // =========================================================
-
+      // UPDATE TASK
   const handleUpdateTask = async (
     taskId,
     formData
@@ -695,10 +653,8 @@ function Dashboard({
     }
   }
 
-  // =========================================================
+   
   // DELETE TASK
-  // =========================================================
-
   const handleConfirmDeleteTask =
     async () => {
       if (!deletingTask) return
@@ -727,10 +683,7 @@ function Dashboard({
       }
     }
 
-  // =========================================================
   // ADD SUBTASK
-  // =========================================================
-
   const handleAddSubtask = async (
     taskId,
     title
@@ -767,10 +720,8 @@ function Dashboard({
     }
   }
 
-  // =========================================================
-  // TOGGLE SUBTASK
-  // =========================================================
-
+  //TOGGLE SUBTASK
+   
   const handleToggleSubtask = async (
     taskId,
     subtaskId
@@ -852,10 +803,7 @@ function Dashboard({
     }
   }
 
-  // =========================================================
   // EDIT SUBTASK
-  // =========================================================
-
   const handleEditSubtask = async (
     taskId,
     subtaskId,
@@ -889,10 +837,7 @@ function Dashboard({
     }
   }
 
-  // =========================================================
   // DELETE SUBTASK
-  // =========================================================
-
   const handleDeleteSubtask = async (
     taskId,
     subtaskId
@@ -922,20 +867,14 @@ function Dashboard({
     }
   }
 
-  // =========================================================
-  // STAT CARD
-  // =========================================================
-
-  const handleStatCardClick = (
+     // STAT CARD
+   const handleStatCardClick = (
     filter
   ) => {
     setStatusFilter(filter)
   }
 
-  // =========================================================
   // RENDER
-  // =========================================================
-
   return (
     <div className="dashboard-layout">
 
@@ -969,9 +908,7 @@ function Dashboard({
           setDarkMode={setDarkMode}
         />
 
-        {/* =================================================
-            DASHBOARD
-        ================================================= */}
+        {/*DASHBOARD*/}
 
         {activeNav === 'dashboard' && (
           <>
@@ -1236,9 +1173,7 @@ function Dashboard({
           </>
         )}
 
-        {/* =================================================
-            CATEGORIES
-        ================================================= */}
+        {/* CATEGORIES */}
 
         {activeNav === 'categories' && (
           <Categories
@@ -1251,9 +1186,7 @@ function Dashboard({
           />
         )}
 
-        {/* =================================================
-            FULL CALENDAR
-        ================================================= */}
+        {/* FULL CALENDAR*/}
 
         {activeNav === 'calendar' && (
           <Calendar
@@ -1280,9 +1213,7 @@ function Dashboard({
           />
         )}
 
-        {/* =================================================
-            ADD TASK MODAL
-        ================================================= */}
+        {/* ADD TASK MODAL */}
 
         <AddTaskModal
           isOpen={isAddModalOpen}
@@ -1296,9 +1227,7 @@ function Dashboard({
           }
         />
 
-        {/* =================================================
-            EDIT TASK MODAL
-        ================================================= */}
+        {/* EDIT TASK MODAL */}
 
         <EditTaskModal
           isOpen={Boolean(
@@ -1311,9 +1240,7 @@ function Dashboard({
           onSubmit={handleUpdateTask}
         />
 
-        {/* =================================================
-            DELETE CONFIRMATION
-        ================================================= */}
+        {/* DELETE CONFIRMATION */}
 
         <ConfirmModal
           isOpen={Boolean(
@@ -1334,9 +1261,7 @@ function Dashboard({
           }
         />
 
-        {/* =================================================
-            PROFILE
-        ================================================= */}
+        {/* PROFILE */}
 
         <ProfileModal
           isOpen={profileOpen}

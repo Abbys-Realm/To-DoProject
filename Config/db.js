@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const {Pool}= require("pg");
 
 //a variable that connect the database to the backend 

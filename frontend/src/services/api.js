@@ -118,10 +118,7 @@ async login({ email, password }) {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
-
-  console.log('LOGIN RESPONSE:', res)
-
-  if (res.JWTtoken) {
+   if (res.JWTtoken) {
     setToken(res.JWTtoken)
   }
 

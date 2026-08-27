@@ -161,10 +161,17 @@ const getTasks = async (req, res, next) => {
       [id, user_id]
     );
 
-    res.status(200).json({
-      success: true,
-      data: result.rows[0],
-    });
+    if (result.rows.length === 0) {
+  return res.status(404).json({
+    success: false,
+    message: 'Task not found'
+  })
+}
+
+res.status(200).json({
+  success: true,
+  data: result.rows[0]
+})
   } catch (error) {
     next(error);
   }
@@ -248,7 +255,7 @@ const addTask = async (req, res, next) => {
       [taskname, category, completed, user_id, description, priority, dueDateValue, important, frequency]
     );
 
-    res.status(201).json({ success: 'true', data: result.rows[0] });
+    res.status(201).json({ success: false, data: result.rows[0] });
   } catch (error) {
     next(error);
   }

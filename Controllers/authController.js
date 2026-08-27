@@ -85,14 +85,14 @@ const cleanEmail = email?.trim().toLowerCase()
 if (UserExist.rows.length > 0) {
   const existingUser = UserExist.rows[0]
 
-  if (existingUser.email.toLowerCase() === email.trim().toLowerCase()) {
+  if (existingUser.email.toLowerCase() === cleanEmail) {
     return res.status(400).json({
       success: false,
       message: 'Email already exists'
     })
   }
 
-  if (existingUser.username.toLowerCase() === username.trim().toLowerCase()) {
+  if (existingUser.username.toLowerCase() === cleanUsername.toLowerCase()) {
     return res.status(400).json({
       success: false,
       message: 'Username already exists'

@@ -1,4 +1,3 @@
-const {json}= require('express')
 const pool = require("../Config/db")
 
 //task and subtask synchronization
@@ -21,18 +20,7 @@ const completedTask= total > 0 && total === completed;
   return updated.rows[0]
 
   }
-  
-
-//Complete the subtasks belonging to a task
-const completeSubtasks= async(task_id)=>{
-    await pool.query(
-        ` UPDATE subtasks
-        SET completed=true
-        WHERE task_id=$1`, [task_id]
-    )
-}
-
-
+ 
 const getSubtasks= async (req,res,next)=>{
     try{
         const task_id= Number(req.params.taskID)
@@ -86,6 +74,12 @@ const getSubtasks= async (req,res,next)=>{
                     WHERE  ${condition.join(" AND ")}
                     ${sortQuery}`,
                      value)
+        if (result.rows.length === 0) {
+           return res.status(404).json({
+             success: false,
+             message: 'Subtask not found'
+            })
+         }
         res.status(200).json({
             success: true,
             data: result.rows
@@ -256,7 +250,7 @@ const patchSubtask= async (req,res,next)=>{
     }
 };
 
-const deleteSubtask= async (req,res)=>{
+const deleteSubtask= async (req,res,next)=>{
     try{
         const id= Number(req.params.id)
         const task_id= Number(req.params.taskID);
